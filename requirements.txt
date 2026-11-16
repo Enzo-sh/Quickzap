@@ -1,0 +1,2 @@
+# Quickzap (etapa 1) no necesita paquetes de terceros: solo Python 3.9+ y Ollama.
+# Las etapas siguientes (RAG, importacion de PDF/DOCX) agregaran dependencias opcionales aqui.
