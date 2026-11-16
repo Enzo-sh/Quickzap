@@ -1,9 +1,11 @@
 name: tests
 on: [push, pull_request]
+
 jobs:
   unit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.9", "3.11", "3.12", "3.13"]
     steps:
@@ -13,8 +15,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: python scripts/check_secrets.py
       - run: python -m unittest discover -s tests -t . -v
+
   windows-macos:
-    # Informativo: estos sistemas no se pudieron probar durante el desarrollo, así que no bloquean el PR.
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     strategy:
