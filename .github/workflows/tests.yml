@@ -18,7 +18,6 @@ jobs:
 
   windows-macos:
     runs-on: ${{ matrix.os }}
-    continue-on-error: true
     strategy:
       matrix:
         os: [windows-latest, macos-latest]
