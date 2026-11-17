@@ -1,0 +1,128 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="QuickZap is a free, open-source local AI assistant. Private AI conversations powered by Ollama.">
+    <meta name="theme-color" content="#101014">
+    <title>QuickZap | Your AI, Your Machine</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: #101014;
+            color: #f4f4f5;
+            font-family: Arial, sans-serif;
+        }
+        header {
+            padding: 25px 9%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #292930;
+        }
+        .logo { font-size: 24px; font-weight: bold; }
+        a { color: #a78bfa; text-decoration: none; }
+        .hero {
+            max-width: 850px;
+            margin: 110px auto;
+            padding: 25px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: clamp(42px, 8vw, 72px);
+            margin-bottom: 15px;
+        }
+        .hero h1 span { color: #a78bfa; }
+        .hero p {
+            color: #aaaab5;
+            font-size: 19px;
+            line-height: 1.7;
+        }
+        .buttons { margin-top: 35px; }
+        .button {
+            display: inline-block;
+            padding: 14px 24px;
+            margin: 7px;
+            border-radius: 9px;
+            background: #8b5cf6;
+            color: white;
+            font-weight: bold;
+        }
+        .secondary { background: #292930; }
+        .features {
+            max-width: 950px;
+            margin: auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+        .feature {
+            background: #19191f;
+            border: 1px solid #30303a;
+            padding: 25px;
+            border-radius: 14px;
+        }
+        .feature p { color: #aaaab5; line-height: 1.6; }
+        footer {
+            text-align: center;
+            padding: 45px 15px;
+            margin-top: 80px;
+            border-top: 1px solid #292930;
+            color: #888894;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">⚡ QuickZap</div>
+        <a href="https://github.com/Enzo-sh/Quickzap">GitHub ↗</a>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>Your AI.<br><span>Your Machine.</span></h1>
+            <p>
+                Meet QuickZap, a free and open-source AI assistant
+                designed to run locally on your computer.
+                Private conversations, without depending on cloud services.
+            </p>
+            <div class="buttons">
+                <a class="button" href="https://github.com/Enzo-sh/Quickzap/releases">
+                    Download QuickZap
+                </a>
+                <a class="button secondary" href="https://github.com/Enzo-sh/Quickzap">
+                    View on GitHub
+                </a>
+            </div>
+        </section>
+
+        <section class="features">
+            <article class="feature">
+                <h2>🔒 Private</h2>
+                <p>Your conversations are processed locally rather than sent to a cloud AI service.</p>
+            </article>
+            <article class="feature">
+                <h2>⚡ Offline</h2>
+                <p>Use your local AI models without needing an internet connection after setup.</p>
+            </article>
+            <article class="feature">
+                <h2>🧠 Powered by Ollama</h2>
+                <p>Run local language models through Ollama.</p>
+            </article>
+            <article class="feature">
+                <h2>🌐 Open Source</h2>
+                <p>Explore the source code and contribute to the project on GitHub.</p>
+            </article>
+        </section>
+    </main>
+
+    <footer>
+        <p>QuickZap · Open Source Software</p>
+        <p>Made with ⚡ by Enzo</p>
+        <a href="https://github.com/Enzo-sh/Quickzap">GitHub Repository</a>
+    </footer>
+</body>
+</html>
