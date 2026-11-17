@@ -73,6 +73,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_DELETE(self): self._dispatch("DELETE")
 
     def _dispatch(self, method):
+        self._body_done = False
         try:
             host = self.headers.get("Host", "")
             if urlparse("//" + host).hostname not in ALLOWED_HOSTS:
@@ -95,11 +96,28 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             traceback.print_exc()
             self._json({"error": "Error interno del servidor."}, 500)
+        finally:
+            self._drain_body()
+
+    def _drain_body(self):
+        """Descarta el cuerpo del pedido que ningún handler leyó. Si queda sin leer al cerrar
+        la conexión, macOS manda un RST en vez de un FIN y el cliente pierde la respuesta ya
+        enviada (ConnectionResetError 54 en /api/setup/install-ollama, el único POST de stream
+        que no pasa por _body). Leer esos bytes garantiza un cierre limpio en los tres sistemas."""
+        if getattr(self, "_body_done", False):
+            return
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+            if 0 < length <= MAX_BODY:
+                self.rfile.read(length)
+        except (OSError, ValueError):
+            pass  # la conexión ya se cortó: se cierra igual
 
     def _body(self):
         length = int(self.headers.get("Content-Length") or 0)
         if length > MAX_BODY:
             raise ValueError("Solicitud demasiado grande.")
+        self._body_done = True  # el drenaje de cierre ya no tiene nada que descartar
         data = json.loads(self.rfile.read(length) or b"{}")
         if not isinstance(data, dict):
             raise ValueError("Se esperaba un objeto JSON.")

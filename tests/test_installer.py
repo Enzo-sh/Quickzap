@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from quickzap import db, installer
+from quickzap import db, installer, server
 from quickzap.ollama import PullProgress
 from tests.fake_ollama import FakeOllama
 from tests import test_api
@@ -175,6 +175,27 @@ class SetupEndpointTests(test_api.ServerCase):
         self.assertEqual((ev[-1]["type"], ev[-1]["phase"]), ("error", "install"))
         self.assertIn("permisos", ev[-1]["message"].lower())
         self.assertTrue(ev[-1]["hint"])
+
+    def test_install_closes_clean_even_when_body_is_never_read(self):
+        # /api/setup/install-ollama no consume el cuerpo del POST: si el servidor cierra la
+        # conexión con esos bytes sin leer, macOS responde RST (no FIN) y el cliente pierde
+        # la respuesta entera con ConnectionResetError 54. El drenaje debe correr igual.
+        def ok_install():
+            yield {"type": "log", "text": "paso 1"}
+            yield {"type": "done"}
+
+        drained = []
+        original = server.Handler._drain_body
+
+        def spy(self):
+            drained.append(True)
+            original(self)
+
+        with mock.patch.object(installer, "install_ollama", ok_install), \
+             mock.patch.object(server.Handler, "_drain_body", spy):
+            ev = self.stream("/api/setup/install-ollama", {})
+        self.assertEqual([e["type"] for e in ev], ["log", "done"])
+        self.assertTrue(drained)
 
     def test_start_endpoint(self):
         _, r = self.call("POST", "/api/setup/start-ollama", {})
