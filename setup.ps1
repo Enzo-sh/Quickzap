@@ -1,12 +1,12 @@
 <#
 .SYNOPSIS
-  Instala y configura Ollama + un modelo para Quickzap (Windows 10/11).
+  Installs and configures Ollama + a model for Quickzap (Windows 10/11).
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File setup.ps1
   powershell -ExecutionPolicy Bypass -File setup.ps1 -Model qwen2.5:3b
 #>
 param(
-  [string]$Model = "auto",   # "auto" elige segun tu GPU (ver: python -m quickzap recommend)
+  [string]$Model = "auto",   # "auto" chooses based on your GPU (see: python -m quickzap recommend)
   [switch]$SkipVerify
 )
 $ErrorActionPreference = "Stop"
@@ -33,14 +33,14 @@ function Test-OllamaUp {
   catch { return $false }
 }
 
-Step "1/5  Python 3.9 o superior"
+Step "1/5  Python 3.9 or later"
 if (-not (Test-Python)) {
   if (Get-Command winget -ErrorAction SilentlyContinue) {
-    Write-Host "Instalando Python con winget..."
+    Write-Host "Installing Python with winget..."
     winget install -e --id Python.Python.3.12 --accept-package-agreements --accept-source-agreements
     Refresh-Path
   }
-  if (-not (Test-Python)) { throw "No se encontro Python 3.9+. Instalalo desde https://www.python.org/downloads/ (marca 'Add to PATH') y ejecuta este script otra vez." }
+  if (-not (Test-Python)) { throw "Could not find Python 3.9+. Install it from https://www.python.org/downloads/ (check 'Add to PATH') and run this script again." }
 }
 Write-Host "Python OK: $(& python --version)"
 
@@ -48,44 +48,44 @@ Step "2/5  Ollama"
 $ollama = Find-Ollama
 if (-not $ollama) {
   if (Get-Command winget -ErrorAction SilentlyContinue) {
-    Write-Host "Instalando Ollama con winget..."
+    Write-Host "Installing Ollama with winget..."
     winget install -e --id Ollama.Ollama --accept-package-agreements --accept-source-agreements
   } else {
-    Write-Host "Descargando el instalador oficial de Ollama..."
+    Write-Host "Downloading the official Ollama installer..."
     $installer = Join-Path $env:TEMP "OllamaSetup.exe"
     Invoke-WebRequest "https://ollama.com/download/OllamaSetup.exe" -OutFile $installer
     Start-Process $installer -ArgumentList "/SILENT" -Wait
   }
   Refresh-Path
   $ollama = Find-Ollama
-  if (-not $ollama) { throw "No se pudo instalar Ollama automaticamente. Instalalo desde https://ollama.com/download y ejecuta este script otra vez." }
+  if (-not $ollama) { throw "Could not install Ollama automatically. Install it from https://ollama.com/download and run this script again." }
 }
 Write-Host "Ollama encontrado: $ollama"
 
-Step "3/5  Iniciando el servicio de Ollama"
+Step "3/5  Starting the Ollama service"
 if (-not (Test-OllamaUp)) {
   Start-Process -FilePath $ollama -ArgumentList "serve" -WindowStyle Hidden
   $ready = $false
   for ($i = 0; $i -lt 30; $i++) { if (Test-OllamaUp) { $ready = $true; break }; Start-Sleep -Seconds 1 }
-  if (-not $ready) { throw "Ollama no respondio en 30 segundos. Abre la aplicacion Ollama manualmente y vuelve a intentar." }
+  if (-not $ready) { throw "Ollama did not respond within 30 seconds. Open the Ollama app manually and try again." }
 }
-Write-Host "Ollama activo en http://127.0.0.1:11434"
+Write-Host "Ollama running at http://127.0.0.1:11434"
 
-Step "4/5  Descargando el modelo"
+Step "4/5  Downloading the model"
 if ($Model -eq "auto") { $Model = (& python -m quickzap recommend --plain).Trim() }
-Write-Host "Modelo: $Model (puede tardar segun tu conexion; son varios GB)"
+Write-Host "Model: $Model (may take a while depending on your connection; several GB)"
 & python -m quickzap pull $Model
-if ($LASTEXITCODE -ne 0) { throw "Fallo la descarga del modelo $Model." }
+if ($LASTEXITCODE -ne 0) { throw "Failed to download model $Model." }
 
 if (-not $SkipVerify) {
-  Step "5/5  Verificacion"
+  Step "5/5  Verification"
   & python -m quickzap doctor
-  if ($LASTEXITCODE -ne 0) { throw "La verificacion encontro problemas (ver arriba)." }
+  if ($LASTEXITCODE -ne 0) { throw "Verification found problems (see above)." }
 }
 
-# Guarda el tiempo total para los informes de benchmark (python -m quickzap bench)
+# Save the total time for benchmark reports (python -m quickzap bench)
 New-Item -ItemType Directory -Force -Path (Join-Path $PSScriptRoot "data") | Out-Null
 $json = '{"install_seconds": ' + [int]$stopwatch.Elapsed.TotalSeconds + '}'
 Set-Content -Path (Join-Path $PSScriptRoot "data\install_timing.json") -Value $json -Encoding ascii
 
-Write-Host "`nListo. Para iniciar Quickzap ejecuta:  python -m quickzap" -ForegroundColor Green
+Write-Host "`nDone. To start Quickzap run:  python -m quickzap" -ForegroundColor Green

@@ -13,7 +13,7 @@ def pull(model):
     settings = db.get_settings()
     model = model or settings["model"]
     if not valid_model_name(model):
-        print("Nombre de modelo inválido.")
+        print("Invalid model name.")
         return 2
     client = OllamaClient(settings["ollama_host"])
     try:
@@ -33,7 +33,7 @@ def pull(model):
             if line != last:
                 print("\r" + line.ljust(60), end="", flush=True)
                 last = line
-        print("\nModelo «%s» listo." % model)
+        print("\nModel “%s” ready." % model)
     except OllamaError as e:
         from .diagnostics import explain
         info = explain(str(e), "download")
@@ -50,16 +50,16 @@ def show_hardware(as_json):
         return 0
     r, cpu = hw["ram"], hw["cpu"]
     print("Sistema : %s" % hw["os"])
-    print("CPU     : %s (%s hilos)" % (cpu["name"], cpu["threads"]))
-    print("RAM     : %s GB totales, %s GB disponibles" % (r["total_gb"], r["available_gb"]))
+    print("CPU     : %s (%s threads)" % (cpu["name"], cpu["threads"]))
+    print("RAM     : %s GB total, %s GB available" % (r["total_gb"], r["available_gb"]))
     for g in hw["gpus"] or []:
-        print("GPU     : %s · %.1f GB de VRAM%s" % (g["name"], g["vram_total_mib"] / 1024, " (estimado)" if g["estimated"] else ""))
+        print("GPU     : %s · %.1f GB of VRAM%s" % (g["name"], g["vram_total_mib"] / 1024, " (estimated)" if g["estimated"] else ""))
     if not hw["gpus"]:
-        print("GPU     : no se detectó una GPU compatible (se usará la CPU)")
+        print("GPU     : no compatible GPU detected (CPU will be used)")
     rec = hardware.recommend(hw)
-    print("\nRecomendado: %s (%s) · %s" % (rec["model"], hardware.QUANTS[rec["quant"]]["short"], rec["reason"]))
+    print("\nRecommended: %s (%s) · %s" % (rec["model"], hardware.QUANTS[rec["quant"]]["short"], rec["reason"]))
     if rec["warning"]:
-        print("Aviso: %s" % rec["warning"])
+        print("Warning: %s" % rec["warning"])
     return 0
 
 
@@ -74,17 +74,17 @@ def bench(args):
     httpd.server_close()
     startup_ms = round((time.perf_counter() - t) * 1000)
 
-    names = {"connection": "Conexión con Ollama", "model": "Modelo descargado", "load": "Carga del modelo",
-             "generation": "Generación de texto", "memory": "Uso de memoria", "stability": "Estabilidad"}
+    names = {"connection": "Ollama connection", "model": "Model downloaded", "load": "Model load",
+             "generation": "Text generation", "memory": "Memory usage", "stability": "Stability"}
 
     def show(event):
         if event["type"] == "stage" and event["status"] in ("ok", "error"):
             print("  [%s] %s%s" % ("OK" if event["status"] == "ok" else "X ", names[event["stage"]],
                                    " — " + event["detail"] if event.get("detail") else ""))
         elif event["type"] == "eval":
-            print("  calidad %d/%d" % (event["done"], event["total"]), end="\r")
+            print("  quality %d/%d" % (event["done"], event["total"]), end="\r")
 
-    print("Benchmark de «%s»%s…" % (model, " (rápido)" if args.quick else " (incluye prueba de estabilidad)"))
+    print("Benchmark of “%s”%s…" % (model, " (quick)" if args.quick else " (includes stability test)"))
     report = benchmark.run(client, model, s["keep_alive"], long=not args.quick, emit=show, num_ctx=s["num_ctx"])
     report["startup_ms"] = startup_ms
     report["online"] = server.internet_now()
@@ -96,22 +96,22 @@ def bench(args):
             pass
     if args.quality and report["ok"]:
         report["quality"] = evals.run(client, model, s["keep_alive"], emit=show)
-        print("  [OK] Calidad: %d/%d respuestas correctas" % (report["quality"]["score"], report["quality"]["total"]))
+        print("  [OK] Quality: %d/%d correct answers" % (report["quality"]["score"], report["quality"]["total"]))
     for err in report["errors"]:
         print("\nError (%s): %s\n  -> %s" % (err["phase"], err["title"], err["hint"]))
     if report["ok"]:
         g, m = report["phases"]["generation"], report["memory"]
-        print("\nResumen: %s tokens/s · primer token %s ms · carga %.1f s · modelo %s GB (%s%% en GPU)" % (
+        print("\nSummary: %s tokens/s · first token %s ms · load %.1f s · model %s GB (%s%% on GPU)" % (
             g["tps"], g["ttft_ms"], report["phases"]["load"]["seconds"], m["model_gb"], m["gpu_percent"]))
         if report["stability"]:
             st = report["stability"]
-            print("Estabilidad: %s (mín %s / mediana %s tokens/s)" % ("estable" if st.get("stable") else "irregular", st.get("tps_min"), st.get("tps_median")))
+            print("Stability: %s (min %s / median %s tokens/s)" % ("stable" if st.get("stable") else "irregular", st.get("tps_min"), st.get("tps_median")))
     db.save_benchmark(report)
     if not args.no_save:
         out = Path(args.out) if args.out else config.ROOT / "benchmarks" / reports.default_filename(report)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
-        print("\nInforme guardado en %s\nPodés compartirlo en un Pull Request (ver docs/BENCHMARKS.md). No contiene datos personales." % out)
+        print("\nReport saved to %s\nYou can share it in a Pull Request (see docs/BENCHMARKS.md). It contains no personal data." % out)
     return 0 if report["ok"] else 1
 
 
@@ -122,38 +122,38 @@ def compare(files):
             try:
                 loaded.append(json.loads(f.read_text(encoding="utf-8")))
             except (ValueError, OSError) as e:
-                print("No se pudo leer %s: %s" % (f, e), file=sys.stderr)
+                print("Could not read %s: %s" % (f, e), file=sys.stderr)
     if not loaded:
-        print("No se encontraron informes.")
+        print("No reports found.")
         return 1
     print(reports.compare_markdown(loaded))
     return 0
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(prog="quickzap", description="Asistente de IA local sobre Ollama.")
-    p.add_argument("--port", type=int, default=8765, help="Puerto de la aplicación (por defecto 8765).")
-    p.add_argument("--no-browser", action="store_true", help="No abrir el navegador automáticamente.")
+    p = argparse.ArgumentParser(prog="quickzap", description="Local AI assistant powered by Ollama.")
+    p.add_argument("--port", type=int, default=8765, help="Application port (default 8765).")
+    p.add_argument("--no-browser", action="store_true", help="Do not open the browser automatically.")
     sub = p.add_subparsers(dest="cmd")
-    serve = sub.add_parser("serve", help="Inicia la aplicación (predeterminado).")
+    serve = sub.add_parser("serve", help="Starts the application (default).")
     serve.add_argument("--port", type=int, default=8765)
     serve.add_argument("--no-browser", action="store_true")
-    sub.add_parser("doctor", help="Verifica Ollama, el modelo y la GPU.")
-    pl = sub.add_parser("pull", help="Descarga un modelo y lo deja seleccionado.")
+    sub.add_parser("doctor", help="Checks Ollama, the model, and the GPU.")
+    pl = sub.add_parser("pull", help="Downloads a model and selects it.")
     pl.add_argument("model", nargs="?")
-    rec = sub.add_parser("recommend", help="Sugiere un modelo según tu hardware.")
-    rec.add_argument("--plain", action="store_true", help="Imprime solo el nombre del modelo.")
-    hw = sub.add_parser("hardware", help="Muestra CPU, RAM y GPU detectadas.")
+    rec = sub.add_parser("recommend", help="Suggests a model based on your hardware.")
+    rec.add_argument("--plain", action="store_true", help="Prints only the model name.")
+    hw = sub.add_parser("hardware", help="Shows detected CPU, RAM, and GPU.")
     hw.add_argument("--json", action="store_true")
-    b = sub.add_parser("bench", help="Mide velocidad, primer token, memoria y estabilidad; guarda un informe.")
+    b = sub.add_parser("bench", help="Measures speed, first token, memory, and stability; saves a report.")
     b.add_argument("--model")
-    b.add_argument("--quick", action="store_true", help="Omite la prueba de estabilidad.")
-    b.add_argument("--quality", action="store_true", help="Agrega la batería de calidad (8 preguntas).")
-    b.add_argument("--out", help="Ruta del informe JSON (por defecto, benchmarks/).")
+    b.add_argument("--quick", action="store_true", help="Skips the stability test.")
+    b.add_argument("--quality", action="store_true", help="Adds the quality battery (8 questions).")
+    b.add_argument("--out", help="Path of the JSON report (default: benchmarks/).")
     b.add_argument("--no-save", action="store_true")
-    bc = sub.add_parser("bench-compare", help="Compara informes y genera una tabla Markdown.")
+    bc = sub.add_parser("bench-compare", help="Compares reports and generates a Markdown table.")
     bc.add_argument("files", nargs="+")
-    md = sub.add_parser("models", help="Lista los modelos compatibles (Markdown).")
+    md = sub.add_parser("models", help="Lists the compatible models (Markdown).")
     md.add_argument("--markdown", action="store_true")
     args = p.parse_args(argv)
 

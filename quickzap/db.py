@@ -1,4 +1,4 @@
-"""SQLite: conversaciones, mensajes y ajustes. Un archivo local, sin servidor."""
+"""SQLite: conversations, messages, and settings. A local file, no server."""
 import json
 import os
 import sqlite3
@@ -43,7 +43,7 @@ def init():
         c.executescript(SCHEMA)
 
 
-# ---- ajustes -------------------------------------------------------------
+# ---- settings ----------------------------------------------------------------
 
 def get_settings():
     settings = dict(config.DEFAULTS)
@@ -61,27 +61,27 @@ def _validate(key, value):
     if key == "model":
         from .ollama import valid_model_name
         if not valid_model_name(value):
-            raise ValueError("Nombre de modelo inválido.")
+            raise ValueError("Invalid model name.")
     elif key == "temperature":
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value <= 2:
-            raise ValueError("La temperatura debe estar entre 0 y 2.")
+            raise ValueError("Temperature must be between 0 and 2.")
     elif key == "personality":
         if not isinstance(value, str) or len(value) > 500:
-            raise ValueError("La personalidad debe ser texto de hasta 500 caracteres.")
+            raise ValueError("Personality must be text of up to 500 characters.")
     elif key == "context_messages":
         if isinstance(value, bool) or not isinstance(value, int) or not 2 <= value <= 100:
-            raise ValueError("Los mensajes de contexto deben ser un entero entre 2 y 100.")
+            raise ValueError("Context messages must be an integer between 2 and 100.")
     elif key == "ollama_host":
         if not isinstance(value, str) or not value.strip():
-            raise ValueError("Dirección de Ollama inválida.")
+            raise ValueError("Invalid Ollama address.")
     elif key == "num_ctx":
         if isinstance(value, bool) or not isinstance(value, int) or not 512 <= value <= 32768:
-            raise ValueError("El contexto debe ser un entero entre 512 y 32768 tokens.")
+            raise ValueError("Context must be an integer between 512 and 32768 tokens.")
     elif key == "keep_alive":
         if not isinstance(value, str) or not config.KEEP_ALIVE_RE.match(value):
-            raise ValueError("keep_alive inválido (ej.: 10m, 1h, -1).")
+            raise ValueError("Invalid keep_alive (e.g. 10m, 1h, -1).")
     else:
-        raise ValueError("Ajuste desconocido: %s" % key)
+        raise ValueError("Unknown setting: %s" % key)
 
 
 def update_settings(patch):
@@ -94,7 +94,7 @@ def update_settings(patch):
     return get_settings()
 
 
-# ---- conversaciones ------------------------------------------------------
+# ---- conversations ------------------------------------------------------------
 
 def create_conversation(title, model):
     now = time.time()
@@ -147,7 +147,7 @@ def delete_conversation(cid):
         return c.execute("DELETE FROM conversations WHERE id=?", (cid,)).rowcount > 0
 
 
-# ---- métricas y benchmarks -----------------------------------------------------
+# ---- metrics and benchmarks -------------------------------------------------------
 
 def add_metric(cid, model, ttft_ms, total_ms, tokens, tps):
     with connect() as c:
@@ -156,7 +156,7 @@ def add_metric(cid, model, ttft_ms, total_ms, tokens, tps):
 
 
 def metrics_summary(limit=20):
-    """Promedios de las últimas respuestas (velocidad, tiempo al primer token, tiempo total)."""
+    """Averages of the latest replies (speed, time to first token, total time)."""
     with connect() as c:
         rows = c.execute("SELECT model, ttft_ms, total_ms, tokens, tps FROM metrics ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
     if not rows:
@@ -192,7 +192,7 @@ def save_benchmark(report):
 
 
 def latest_benchmarks():
-    """Último benchmark correcto de cada modelo: sirve para comparar modelos entre sí."""
+    """Latest successful benchmark for each model: used to compare models."""
     with connect() as c:
         rows = c.execute("SELECT report, created_at FROM benchmarks WHERE ok=1 ORDER BY id DESC").fetchall()
     seen, out = set(), []

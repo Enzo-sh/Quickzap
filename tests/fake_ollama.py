@@ -1,4 +1,4 @@
-"""Ollama simulado (misma API HTTP) para probar Quickzap sin GPU ni descargas."""
+"""Simulated Ollama (same HTTP API) to test Quickzap without a GPU or downloads."""
 import json
 import threading
 import time
@@ -10,14 +10,14 @@ class FakeOllama:
         self.models = list(models)
         self.chat_calls = []
         self.loaded = None
-        self.down = False             # Ollama instalado pero apagado
-        self.pull_delay = 0.0         # segundos entre eventos de descarga
-        self.load_delay = 0.0         # segundos que tarda en cargar el modelo
-        self.fail_load = None         # mensaje de error al cargar (p. ej. falta de memoria)
-        self.first_token_delay = 0.0  # segundos hasta el primer token
-        self.token_delay = 0.0        # segundos entre tokens
-        self.chat_error = None        # error a mitad de la generación
-        self.pull_error = None        # error durante la descarga (p. ej. sin espacio en disco)
+        self.down = False             # Ollama installed but stopped
+        self.pull_delay = 0.0         # seconds between download events
+        self.load_delay = 0.0         # seconds it takes to load the model
+        self.fail_load = None         # error message on load (e.g. out of memory)
+        self.first_token_delay = 0.0  # seconds until the first token
+        self.token_delay = 0.0        # seconds between tokens
+        self.chat_error = None        # error in the middle of generation
+        self.pull_error = None        # error during download (e.g. no disk space)
         self.size_vram = 5_000_000_000
         self.size = 5_000_000_000
         fake = self
@@ -87,7 +87,7 @@ class FakeOllama:
                 fake.loaded = body["model"]
                 predict = (body.get("options") or {}).get("num_predict", 0)
                 last = body["messages"][-1]["content"]
-                words = ["palabra"] * predict if predict > 32 else ("Eco: " + last).split(" ")
+                words = ["word"] * predict if predict > 32 else ("Echo: " + last).split(" ")
                 time.sleep(fake.first_token_delay)
                 self.send_response(200)
                 self.send_header("Content-Type", "application/x-ndjson")

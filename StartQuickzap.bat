@@ -9,26 +9,26 @@ if errorlevel 1 goto nopython
 python -m quickzap
 if errorlevel 1 (
   echo.
-  echo Quickzap se cerro con un error. Revisa el mensaje de arriba.
+  echo Quickzap closed with an error. Check the message above.
   pause
 )
 goto :eof
 
 :nopython
-echo Quickzap necesita Python 3.9 o superior y no se encontro en este equipo.
+echo Quickzap requires Python 3.9 or later, which was not found on this computer.
 echo.
 where winget >nul 2>nul
 if errorlevel 1 goto manual
-set /p ANSWER=Quieres instalar Python ahora con winget? (S/N): 
-if /i not "%ANSWER%"=="S" goto manual
+set /p ANSWER=Do you want to install Python now with winget? (Y/N): 
+if /i not "%ANSWER%"=="Y" goto manual
 winget install -e --id Python.Python.3.12 --accept-package-agreements --accept-source-agreements
 echo.
-echo Listo. Cierra esta ventana y vuelve a abrir Iniciar-Quickzap.bat.
+echo Done. Close this window and reopen StartQuickzap.bat.
 pause
 goto :eof
 
 :manual
-echo Descarga Python desde https://www.python.org/downloads/
-echo (marca la casilla "Add python.exe to PATH") y vuelve a abrir este archivo.
+echo Download Python from https://www.python.org/downloads/
+echo (check the "Add python.exe to PATH" box) and reopen this file.
 start "" https://www.python.org/downloads/
 pause

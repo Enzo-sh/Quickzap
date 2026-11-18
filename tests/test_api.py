@@ -17,7 +17,7 @@ MODEL = "qwen2.5:7b"
 
 
 class ServerCase(unittest.TestCase):
-    """Base: servidor Quickzap + Ollama simulado en puertos libres, con base de datos temporal."""
+    """Base: Quickzap server + simulated Ollama on free ports, with a temporary database."""
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -61,7 +61,7 @@ class ApiTest(ServerCase):
         status, raw = self.req("GET", "/")
         self.assertEqual(status, 200)
         self.assertIn("QuickZap", raw)
-        self.assertIn("IA local", raw)
+        self.assertIn("Local AI", raw)
 
     def test_status_and_pull_flow(self):
         db.update_settings({"model": "llama3.2:3b"})
@@ -72,58 +72,58 @@ class ApiTest(ServerCase):
         self.assertEqual(events[-1]["type"], "done")
         percents = [e["percent"] for e in events if e["type"] == "progress" and e["percent"] is not None]
         self.assertEqual(percents[0], 0)
-        self.assertIn(40, percents)                       # 400/1000 de la primera capa
-        self.assertEqual(percents, sorted(percents))      # nunca retrocede aunque aparezca otra capa
+        self.assertIn(40, percents)                       # 400/1000 of the first layer
+        self.assertEqual(percents, sorted(percents))      # never goes backwards even when another layer appears
         self.assertEqual(percents[-1], 100)
         self.assertTrue(any(e.get("total") == 1200 for e in events))
         _, st = self.call("GET", "/api/status")
         self.assertTrue(st["model"]["installed"])
 
     def test_chat_streams_persists_and_keeps_context(self):
-        ev = self.stream("/api/chat", {"message": "hola mundo"})
+        ev = self.stream("/api/chat", {"message": "hello world"})
         self.assertEqual(ev[0]["type"], "meta")
         cid = ev[0]["conversation_id"]
         text = "".join(e["text"] for e in ev if e["type"] == "token")
-        self.assertEqual(text.strip(), "Eco: hola mundo")
+        self.assertEqual(text.strip(), "Echo: hello world")
         self.assertEqual(ev[-1]["type"], "done")
         self.assertEqual(ev[-1]["tps"], 50.0)
-        self.stream("/api/chat", {"conversation_id": cid, "message": "segundo"})
+        self.stream("/api/chat", {"conversation_id": cid, "message": "second"})
         sent = self.fake.chat_calls[-1]["messages"]
         self.assertEqual(sent[0]["role"], "system")
         self.assertEqual([m["role"] for m in sent[1:]], ["user", "assistant", "user"])
-        self.assertEqual(sent[1]["content"], "hola mundo")
+        self.assertEqual(sent[1]["content"], "hello world")
         _, conv = self.call("GET", "/api/conversations/%d" % cid)
         self.assertEqual(len(conv["messages"]), 4)
 
     def test_context_window_is_limited(self):
         db.update_settings({"context_messages": 2})
-        cid = self.stream("/api/chat", {"message": "uno"})[0]["conversation_id"]
+        cid = self.stream("/api/chat", {"message": "one"})[0]["conversation_id"]
         self.stream("/api/chat", {"conversation_id": cid, "message": "dos"})
         sent = self.fake.chat_calls[-1]["messages"]
-        self.assertEqual(len(sent), 3)  # sistema + 2 mensajes más recientes
+        self.assertEqual(len(sent), 3)  # system + 2 most recent messages
 
     def test_chat_with_missing_model_explains_how_to_fix(self):
-        db.update_settings({"model": "no-existe:1b"})
-        ev = self.stream("/api/chat", {"message": "hola"})
+        db.update_settings({"model": "does-not-exist:1b"})
+        ev = self.stream("/api/chat", {"message": "hello"})
         self.assertEqual(ev[-1]["type"], "error")
-        self.assertIn("python -m quickzap pull no-existe:1b", ev[-1]["message"])
+        self.assertIn("python -m quickzap pull does-not-exist:1b", ev[-1]["message"])
 
     def test_ollama_down_is_reported_and_chat_fails_gracefully(self):
         self.fake.stop()
         _, st = self.call("GET", "/api/status")
         self.assertFalse(st["ollama"]["running"])
-        ev = self.stream("/api/chat", {"message": "hola"})
+        ev = self.stream("/api/chat", {"message": "hello"})
         self.assertEqual(ev[-1]["type"], "error")
         self.assertIn("Ollama", ev[-1]["message"])
 
     def test_conversations_list_delete_and_model_switch_keeps_history(self):
-        cid = self.stream("/api/chat", {"message": "primero"})[0]["conversation_id"]
-        self.fake.models.append("otro:1b")
-        status, _ = self.call("POST", "/api/models/select", {"model": "otro:1b"})
+        cid = self.stream("/api/chat", {"message": "first"})[0]["conversation_id"]
+        self.fake.models.append("other:1b")
+        status, _ = self.call("POST", "/api/models/select", {"model": "other:1b"})
         self.assertEqual(status, 200)
-        self.stream("/api/chat", {"conversation_id": cid, "message": "segundo"})
-        self.assertEqual(self.fake.chat_calls[-1]["model"], "otro:1b")
-        self.assertEqual(self.fake.chat_calls[-1]["messages"][1]["content"], "primero")
+        self.stream("/api/chat", {"conversation_id": cid, "message": "second"})
+        self.assertEqual(self.fake.chat_calls[-1]["model"], "other:1b")
+        self.assertEqual(self.fake.chat_calls[-1]["messages"][1]["content"], "first")
         _, lst = self.call("GET", "/api/conversations")
         self.assertEqual([c["id"] for c in lst], [cid])
         self.assertEqual(self.call("DELETE", "/api/conversations/%d" % cid)[0], 200)
@@ -140,7 +140,7 @@ class ApiTest(ServerCase):
 
     def test_security_host_and_origin(self):
         self.assertEqual(self.call("GET", "/api/status", headers={"Host": "evil.example.com"})[0], 403)
-        self.assertEqual(self.call("POST", "/api/chat", {"message": "hola"},
+        self.assertEqual(self.call("POST", "/api/chat", {"message": "hello"},
                                    headers={"Origin": "http://evil.example.com"})[0], 403)
 
     def test_doctor_passes_against_working_ollama(self):
@@ -148,14 +148,14 @@ class ApiTest(ServerCase):
         with redirect_stdout(buf):
             code = doctor.run()
         self.assertEqual(code, 0, buf.getvalue())
-        self.assertIn("100% en GPU", buf.getvalue())
+        self.assertIn("100% on GPU", buf.getvalue())
 
     def test_doctor_fails_when_model_missing(self):
-        db.update_settings({"model": "falta:1b"})
+        db.update_settings({"model": "missing:1b"})
         buf = io.StringIO()
         with redirect_stdout(buf):
             self.assertEqual(doctor.run(), 1)
-        self.assertIn("python -m quickzap pull falta:1b", buf.getvalue())
+        self.assertIn("python -m quickzap pull missing:1b", buf.getvalue())
 
 
 class BenchmarkAndStatsTests(ServerCase):
@@ -174,7 +174,7 @@ class BenchmarkAndStatsTests(ServerCase):
         self.fake.fail_load = "model requires more system memory (10.0 GiB) than is available (6.0 GiB)"
         ev = self.stream("/api/benchmark", {})
         self.assertEqual(ev[-1]["report"]["errors"][0]["phase"], "load")
-        self.assertEqual(self.call("GET", "/api/benchmarks")[1], [])   # solo se comparan los benchmarks correctos
+        self.assertEqual(self.call("GET", "/api/benchmarks")[1], [])   # only successful benchmarks are compared
 
     def test_benchmark_with_quality_eval(self):
         ev = self.stream("/api/benchmark", {"quality": True})
@@ -184,7 +184,7 @@ class BenchmarkAndStatsTests(ServerCase):
 
     def test_chat_records_metrics_and_stats_endpoint(self):
         self.fake.first_token_delay = 0.1
-        ev = self.stream("/api/chat", {"message": "hola"})
+        ev = self.stream("/api/chat", {"message": "hello"})
         done = ev[-1]
         self.assertEqual(done["type"], "done")
         self.assertGreaterEqual(done["ttft_ms"], 100)
@@ -207,10 +207,10 @@ class BenchmarkAndStatsTests(ServerCase):
         self.assertIsNone(st["loaded"])
 
     def test_context_size_is_configurable_and_sent_to_ollama(self):
-        self.stream("/api/chat", {"message": "uno"})
+        self.stream("/api/chat", {"message": "one"})
         self.assertEqual(self.fake.chat_calls[-1]["options"]["num_ctx"], 4096)
         self.assertEqual(self.call("POST", "/api/settings", {"num_ctx": 2048})[0], 200)
-        self.stream("/api/chat", {"message": "dos"})
+        self.stream("/api/chat", {"message": "two"})
         self.assertEqual(self.fake.chat_calls[-1]["options"]["num_ctx"], 2048)
         self.assertEqual(self.call("POST", "/api/settings", {"num_ctx": 100})[0], 400)
 
@@ -219,20 +219,20 @@ class BenchmarkAndStatsTests(ServerCase):
         ev = self.stream("/api/models/pull", {"model": "x:1b"})
         err = ev[-1]
         self.assertEqual((err["type"], err["phase"]), ("error", "download"))
-        self.assertIn("espacio", err["message"])
+        self.assertIn("space", err["message"])
         self.assertTrue(err["hint"])
 
     def test_internet_check_never_blocks_a_request(self):
         def slow(*a, **k):
             time.sleep(1.0)
-            raise OSError("sin red")
+            raise OSError("no network")
         server._online.update(t=0.0, v=None, busy=False)
         with mock.patch("socket.create_connection", slow):
             t = time.perf_counter()
             first = server.internet_available()
             elapsed = time.perf_counter() - t
             self.assertLess(elapsed, 0.3)
-            self.assertIsNone(first)                       # todavía no se sabe: no se inventa "offline"
+            self.assertIsNone(first)                       # not known yet: do not assume "offline"
             time.sleep(1.3)
             self.assertIs(server.internet_available(), False)
 

@@ -1,7 +1,7 @@
-"""Benchmark y diagnóstico del modelo local.
+"""Benchmark and diagnostics for the local model.
 
-Mide carga, tiempo hasta el primer token (TTFT), tokens/s, memoria (RAM/VRAM) y estabilidad, y separa los
-errores por fase: instalación, carga del modelo y generación. Sin dependencias externas."""
+Measures load time, time to first token (TTFT), tokens/s, memory (RAM/VRAM), and stability, and separates
+errors by phase: installation, model loading, and generation. No external dependencies."""
 import statistics
 import time
 from datetime import datetime, timezone
@@ -10,15 +10,15 @@ from . import __version__, hardware
 from .diagnostics import explain
 from .ollama import OllamaClient, OllamaError, normalize_model
 
-SHORT_PROMPT = "Respondé únicamente con la palabra OK."
-LONG_PROMPT = "Escribí un texto de unas 150 palabras que explique cómo funciona la fotosíntesis."
+SHORT_PROMPT = "Respond with only the word OK."
+LONG_PROMPT = "Write a text of about 150 words explaining how photosynthesis works."
 STABILITY_TOKENS = 128
-WINDOW = 16          # tokens por ventana para medir la velocidad a lo largo de la generación
-STABLE_RATIO = 0.7   # estable si la ventana más lenta rinde al menos el 70% de la mediana (heurística)
+WINDOW = 16          # tokens per window to measure speed throughout generation
+STABLE_RATIO = 0.7   # stable if the slowest window performs at least 70% of the median (heuristic)
 
 
 def stability_stats(stamps, window=WINDOW):
-    """stamps: instantes (s) de llegada de cada token. Devuelve la velocidad por ventanas o None si hay pocos datos."""
+    """stamps: arrival times (s) of each token. Returns per-window rates or None if there is too little data."""
     rates = []
     for i in range(0, len(stamps) - window, window):
         dt = stamps[i + window] - stamps[i]
@@ -32,7 +32,7 @@ def stability_stats(stamps, window=WINDOW):
 
 
 def _generate(client, model, prompt, options, keep_alive):
-    """Genera una respuesta midiendo TTFT y el instante de cada token. Devuelve un dict de métricas."""
+    """Generates a reply measuring TTFT and the arrival time of each token. Returns a metrics dict."""
     t0 = time.perf_counter()
     stamps, parts, last = [], [], {}
     for chunk in client.chat(model, [{"role": "user", "content": prompt}], options, keep_alive):
@@ -60,14 +60,14 @@ def _memory(client, model):
                        ram_gb=round((size - vram) / hardware.GB, 2), gpu_percent=round(100 * vram / size))
     ram = hardware.ram()
     mem.update(system_ram_used_gb=ram["used_gb"], system_ram_total_gb=ram["total_gb"])
-    hardware._vram_cache["t"] = 0  # forzar lectura fresca
+    hardware._vram_cache["t"] = 0  # force a fresh read
     vu = hardware.vram_usage()
     mem.update(vram_used_mib=vu["used_mib"] if vu else None, vram_total_mib=vu["total_mib"] if vu else None)
     return mem
 
 
 def run(client, model, keep_alive="10m", long=False, cold=True, emit=None, num_ctx=None):
-    """Ejecuta el benchmark. `emit` recibe eventos {'type': 'stage', ...} para mostrar el avance."""
+    """Runs the benchmark. `emit` receives {'type': 'stage', ...} events to show progress."""
     emit = emit or (lambda event: None)
     options = {"num_ctx": num_ctx} if num_ctx else {}
     report = {"app_version": __version__, "model": model, "ollama_version": None, "ok": False,
@@ -84,7 +84,7 @@ def run(client, model, keep_alive="10m", long=False, cold=True, emit=None, num_c
         stage(stage_name, "error", **info)
         return report
 
-    # 1) Conexión con Ollama
+    # 1) Ollama connection
     stage("connection", "running")
     t = time.perf_counter()
     try:
@@ -95,11 +95,11 @@ def run(client, model, keep_alive="10m", long=False, cold=True, emit=None, num_c
     report["phases"]["connection"] = {"ok": True, "ms": round((time.perf_counter() - t) * 1000)}
     stage("connection", "ok", detail="Ollama %s" % report["ollama_version"])
 
-    # 2) El modelo está descargado
+    # 2) The model is downloaded
     if normalize_model(model) not in names:
         report["phases"]["model"] = {"ok": False}
-        info = {"phase": "install", "title": "El modelo «%s» no está descargado" % model,
-                "hint": "Abrí el asistente (botón ⇩) y descargalo, o ejecutá: python -m quickzap pull %s" % model,
+        info = {"phase": "install", "title": "The model “%s” is not downloaded" % model,
+                "hint": "Open the wizard (⇩ button) and download it, or run: python -m quickzap pull %s" % model,
                 "technical": "model not found", "matched": True}
         report["errors"].append(info)
         stage("model", "error", **info)
@@ -107,7 +107,7 @@ def run(client, model, keep_alive="10m", long=False, cold=True, emit=None, num_c
     report["phases"]["model"] = {"ok": True}
     stage("model", "ok", detail=model)
 
-    # 3) Carga en memoria (en frío: se descarga primero para medir el tiempo real)
+    # 3) Load into memory (cold: unload first to measure the real time)
     stage("load", "running")
     try:
         if cold:
@@ -123,7 +123,7 @@ def run(client, model, keep_alive="10m", long=False, cold=True, emit=None, num_c
     report["phases"]["load"] = {"ok": True, "seconds": load_s, "cold": cold}
     stage("load", "ok", detail="%.1f s" % load_s)
 
-    # 4) Generación real de texto
+    # 4) Real text generation
     stage("generation", "running")
     try:
         g = _generate(client, model, SHORT_PROMPT, {**options, "temperature": 0, "num_predict": 16}, keep_alive)
@@ -133,14 +133,14 @@ def run(client, model, keep_alive="10m", long=False, cold=True, emit=None, num_c
     g["ok"] = bool(g["reply"])
     report["phases"]["generation"] = g
     if not g["ok"]:
-        return fail("generation", "generation", "El modelo no devolvió texto.")
+        return fail("generation", "generation", "The model returned no text.")
     stage("generation", "ok", detail="«%s»" % g["reply"][:40], tps=g["tps"], ttft_ms=g["ttft_ms"])
 
-    # 5) Memoria
+    # 5) Memory
     report["memory"] = _memory(client, model)
     stage("memory", "ok")
 
-    # 6) Estabilidad en una generación más larga (opcional: puede tardar en equipos modestos)
+    # 6) Stability in a longer generation (optional: may take a while on modest computers)
     if long:
         stage("stability", "running")
         try:
@@ -149,6 +149,6 @@ def run(client, model, keep_alive="10m", long=False, cold=True, emit=None, num_c
             return fail("stability", "generation", e)
         stats = stability_stats(s["stamps"])
         report["stability"] = {"tokens": s["tokens"], "tps": s["tps"], "total_s": round(s["total_ms"] / 1000, 1), **(stats or {"stable": None})}
-        stage("stability", "ok", detail="estable" if report["stability"].get("stable") else "irregular")
+        stage("stability", "ok", detail="stable" if report["stability"].get("stable") else "irregular")
     report["ok"] = True
     return report

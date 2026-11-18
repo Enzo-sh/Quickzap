@@ -1,4 +1,4 @@
-"""Cliente mínimo de la API HTTP de Ollama (solo biblioteca estándar)."""
+"""Minimal client for the Ollama HTTP API (standard library only)."""
 import json
 import urllib.error
 import urllib.request
@@ -47,7 +47,7 @@ class OllamaClient:
                 message = body or str(e)
             raise OllamaError(message, status=e.code)
         except (urllib.error.URLError, OSError):
-            raise OllamaError("No se pudo conectar con Ollama en " + self.host, unreachable=True)
+            raise OllamaError("Could not connect to Ollama at " + self.host, unreachable=True)
 
     def _json(self, path, **kw):
         with self._open(path, **kw) as r:
@@ -61,7 +61,7 @@ class OllamaClient:
                 if line:
                     yield json.loads(line)
         except (OSError, ValueError) as e:
-            raise OllamaError("Se interrumpió la conexión con Ollama: %s" % e, unreachable=True)
+            raise OllamaError("The connection to Ollama was interrupted: %s" % e, unreachable=True)
         finally:
             resp.close()
 
@@ -78,7 +78,7 @@ class OllamaClient:
             return []
 
     def load(self, model, keep_alive="10m"):
-        """Carga el modelo en memoria sin generar texto. Devuelve la respuesta de Ollama (con load_duration en ns)."""
+        """Loads the model into memory without generating text. Returns Ollama's response (with load_duration in ns)."""
         return self._json("/api/generate", payload={"model": model, "prompt": "", "stream": False,
                                                     "keep_alive": keep_alive}, timeout=300)
 
@@ -88,7 +88,7 @@ class OllamaClient:
     def chat(self, model, messages, options=None, keep_alive="10m"):
         payload = {"model": model, "messages": messages, "stream": True,
                    "options": options or {}, "keep_alive": keep_alive}
-        # El timeout es por inactividad: la primera respuesta incluye la carga del modelo.
+        # The timeout is for inactivity: the first reply includes loading the model.
         return self._stream("/api/chat", payload, timeout=300)
 
     def pull(self, model):
@@ -96,7 +96,7 @@ class OllamaClient:
 
 
 class PullProgress:
-    """Convierte los eventos de /api/pull (uno por capa del modelo) en un porcentaje global que nunca retrocede."""
+    """Turns /api/pull events (one per model layer) into an overall percentage that never goes backwards."""
 
     def __init__(self):
         self.layers = {}

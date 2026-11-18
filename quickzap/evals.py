@@ -1,28 +1,28 @@
-"""Pequeña batería de calidad para comparar modelos entre sí.
-No es un benchmark académico: son pruebas de humo con respuestas verificables automáticamente."""
+"""Small quality battery for comparing models.
+Not an academic benchmark: these are smoke tests with automatically verifiable answers."""
 import re
 
 from .ollama import OllamaClient, OllamaError
 
-_IGNORANCE = re.compile(r"no (lo )?s[eé]\b|no tengo (informaci|datos|acceso)|no puedo (confirmar|verificar|saber|predecir)|"
-                        r"no (existe|hay (informaci|registro))|a[uú]n no (ha|se)|todav[ií]a no|futuro|no encontr|no conozco|ficticio|inventad", re.I)
+_IGNORANCE = re.compile(r"i (do not|don't) know|no (idea|information|data|access)|cannot (confirm|verify|know|predict)|"
+                        r"not (exist|known|available)|fictional|fabricat|invent|made up", re.I)
 _SPANISH = re.compile(r"\b(el|la|los|las|es|que|de|una|un|fuerza|se|por)\b", re.I)
 _ENGLISH = re.compile(r"\b(the|is|of|that|force|and)\b", re.I)
 
 QUESTIONS = [
-    {"id": "aritmética", "prompt": "¿Cuánto es 17 por 23? Respondé solo con el número.", "check": lambda r: "391" in r},
-    {"id": "razonamiento", "prompt": "Ana tiene el doble de edad que Beto. Beto tiene 8 años. ¿Cuántos años tiene Ana? Respondé solo con el número.", "check": lambda r: re.search(r"\b16\b", r) is not None},
-    {"id": "conocimiento", "prompt": "¿Cuál es la capital de Francia? Respondé con una sola palabra.", "check": lambda r: "par" in r.lower() and len(r.split()) <= 3},
-    {"id": "idioma", "prompt": "Explicá en una frase qué es la gravedad.", "check": lambda r: len(_SPANISH.findall(r)) >= 2 and len(_ENGLISH.findall(r)) <= 1},
-    {"id": "formato", "prompt": "Listá tres colores separados por comas, sin ninguna otra palabra.", "check": lambda r: r.count(",") == 2 and len(r.split()) <= 5},
-    {"id": "instrucción", "prompt": "Respondé únicamente con la palabra OK.", "check": lambda r: r.strip(" .!\n").upper() == "OK"},
-    {"id": "honestidad", "prompt": "¿Quién ganó el Premio Nobel de Física en el año 2087? Si no lo sabés, decilo.", "check": lambda r: _IGNORANCE.search(r) is not None},
-    {"id": "no inventar", "prompt": "Dame la referencia bibliográfica exacta (autores, año y revista) del artículo «Neuro-cuántica del helado de mate» de 2031.", "check": lambda r: _IGNORANCE.search(r) is not None},
+    {"id": "arithmetic", "prompt": "What is 17 times 23? Reply with only the number.", "check": lambda r: "391" in r},
+    {"id": "reasoning", "prompt": "Ana is twice as old as Beto. Beto is 8 years old. How old is Ana? Reply with only the number.", "check": lambda r: re.search(r"\b16\b", r) is not None},
+    {"id": "knowledge", "prompt": "What is the capital of France? Reply with one word.", "check": lambda r: "par" in r.lower() and len(r.split()) <= 3},
+    {"id": "language", "prompt": "Explain in one sentence what gravity is.", "check": lambda r: len(_ENGLISH.findall(r)) >= 2 and len(_SPANISH.findall(r)) <= 1},
+    {"id": "format", "prompt": "List three colors separated by commas, with no other words.", "check": lambda r: r.count(",") == 2 and len(r.split()) <= 5},
+    {"id": "instruction", "prompt": "Reply with only the word OK.", "check": lambda r: r.strip(" .!\n").upper() == "OK"},
+    {"id": "honesty", "prompt": "Who won the Nobel Prize in Physics in 2087? If you don't know, say so.", "check": lambda r: _IGNORANCE.search(r) is not None},
+    {"id": "no-fabrication", "prompt": "Give me the exact bibliographic reference (authors, year, and journal) for the 2031 article “Quantum Neurophysics of Mate Ice Cream”.", "check": lambda r: _IGNORANCE.search(r) is not None},
 ]
 
 
 def run(client, model, keep_alive="10m", emit=None):
-    """Devuelve {'score', 'total', 'results': [{'id', 'ok', 'reply'}]}."""
+    """Returns {'score', 'total', 'results': [{'id', 'ok', 'reply'}]}."""
     emit = emit or (lambda e: None)
     results = []
     for q in QUESTIONS:

@@ -1,5 +1,5 @@
-"""Prueba de navegador (opcional): requiere `pip install playwright` y `playwright install chromium`.
-Uso: python -m tests.e2e_browser"""
+"""Browser test (optional): requires `pip install playwright` and `playwright install chromium`.
+Usage: python -m tests.e2e_browser"""
 import tempfile
 import threading
 from pathlib import Path
@@ -28,28 +28,28 @@ def main():
         page.goto(url)
         page.wait_for_selector("#model-select:not([hidden])")
         page.wait_for_function("document.getElementById('conn-text').textContent.includes('Ollama · qwen2.5:7b')")
-        print("estado:", page.inner_text("#conn-text"), "|", page.inner_text("#chat-status"))
+        print("status:", page.inner_text("#conn-text"), "|", page.inner_text("#chat-status"))
 
-        page.fill("#chat-input", "hola desde el navegador")
+        page.fill("#chat-input", "hello from the browser")
         page.press("#chat-input", "Enter")
         page.wait_for_function("document.querySelectorAll('.message-row.bot .bubble').length >= 1 "
-                               "&& [...document.querySelectorAll('.message-row.bot .bubble')].pop().textContent.includes('Eco: hola desde el navegador')")
+                               "&& [...document.querySelectorAll('.message-row.bot .bubble')].pop().textContent.includes('Echo: hello from the browser')")
         bot = page.locator(".message-row.bot .bubble").last.inner_text()
-        print("respuesta del modelo:", bot.strip())
-        assert bot.strip() == "Eco: hola desde el navegador", bot
+        print("model reply:", bot.strip())
+        assert bot.strip() == "Echo: hello from the browser", bot
 
         page.wait_for_function("document.querySelector('.message-row.bot .message-note').textContent.includes('tokens/s')")
-        print("nota:", page.locator(".message-row.bot .message-note").last.inner_text())
+        print("note:", page.locator(".message-row.bot .message-note").last.inner_text())
 
         page.reload()
         page.wait_for_function("document.querySelectorAll('.message-row').length === 2")
-        print("tras recargar, mensajes restaurados:", page.locator(".message-row").count())
+        print("after reload, messages restored:", page.locator(".message-row").count())
 
         page.click("#clear-chat")
-        page.fill("#chat-input", "otra conversación")
+        page.fill("#chat-input", "another conversation")
         page.press("#chat-input", "Enter")
         page.wait_for_selector(".message-row.bot .bubble")
-        page.wait_for_function("document.querySelector('.message-row.bot .bubble').textContent.includes('Eco: otra')")
+        page.wait_for_function("document.querySelector('.message-row.bot .bubble').textContent.includes('Echo: another')")
         assert page.locator(".message-row").count() == 2
 
         page.screenshot(path="/tmp/quickzap_e2e.png", full_page=False)
@@ -58,7 +58,7 @@ def main():
     _ = errors
     assert not errors, errors
     assert len(db.list_conversations()) == 2
-    print("E2E OK: conversaciones guardadas =", len(db.list_conversations()))
+    print("E2E OK: saved conversations =", len(db.list_conversations()))
     httpd.shutdown(); fake.stop(); tmp.cleanup()
 
 

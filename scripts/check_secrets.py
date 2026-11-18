@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
-"""Busca claves API, contraseñas, rutas personales y correos en el repositorio antes de publicarlo.
-Uso: python scripts/check_secrets.py [ruta]   (código de salida 1 si encuentra algo)"""
+"""Scans the repository for API keys, passwords, personal paths, and emails before publishing.
+Usage: python scripts/check_secrets.py [path]   (exit code 1 if anything is found)"""
 import re
 import sys
 from pathlib import Path
 
 SKIP_DIRS = {".git", "data", "__pycache__", ".venv", "node_modules"}
-SKIP_FILES = {"check_secrets.py", "test_hygiene.py"}  # contienen secretos falsos a propósito, para probar el escáner
+SKIP_FILES = {"check_secrets.py", "test_hygiene.py"}  # contain fake secrets on purpose, to test the scanner
 SKIP_SUFFIX = {".png", ".jpg", ".jpeg", ".gif", ".ico", ".zip", ".db", ".pyc"}
 DATA_URI = re.compile(r"data:[\w/+.-]+;base64,[A-Za-z0-9+/=]+")
 RULES = [
-    ("clave de API", re.compile(r"\b(sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35})")),
-    ("clave privada", re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----")),
-    ("credencial en texto", re.compile(r"(?i)\b(api[_-]?key|secret|passw(?:or)?d|token)\b\s*[:=]\s*['\"][^'\"\s]{8,}['\"]")),
-    ("ruta personal", re.compile(r"(?i)(?:[A-Z]:[\\/]Users[\\/](?!<|%|Public|Default|\{)[^\\/\s'\"]+|/Users/(?!<|Shared)[^/\s'\"]+/|/home/(?!<|runner|user/)[^/\s'\"]+/)")),
-    ("correo electrónico", re.compile(r"\b[\w.+-]+@(?!example\.|users\.noreply\.github\.com)[\w-]+\.[\w.-]+\b")),
+    ("API key", re.compile(r"\b(sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35})")),
+    ("private key", re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----")),
+    ("plaintext credential", re.compile(r"(?i)\b(api[_-]?key|secret|passw(?:or)?d|token)\b\s*[:=]\s*['\"][^'\"\s]{8,}['\"]")),
+    ("personal path", re.compile(r"(?i)(?:[A-Z]:[\\/]Users[\\/](?!<|%|Public|Default|\{)[^\\/\s'\"]+|/Users/(?!<|Shared)[^/\s'\"]+/|/home/(?!<|runner|user/)[^/\s'\"]+/)")),
+    ("email address", re.compile(r"\b[\w.+-]+@(?!example\.|users\.noreply\.github\.com)[\w-]+\.[\w.-]+\b")),
 ]
 
 
@@ -41,7 +41,7 @@ def main():
     findings = scan(root)
     for file, number, label, line in findings:
         print("%s:%d  [%s]  %s" % (file, number, label, line))
-    print("Sin hallazgos." if not findings else "\n%d hallazgo(s): revisalos antes de publicar." % len(findings))
+    print("No findings." if not findings else "\n%d finding(s): review them before publishing." % len(findings))
     return 1 if findings else 0
 
 

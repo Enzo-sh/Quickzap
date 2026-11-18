@@ -7,7 +7,7 @@ from quickzap.hardware import assess, catalog, parse_meminfo, parse_nvidia_smi, 
 
 def machine(vram_gb=None, ram_total=16.0, ram_avail=10.0, unified=False):
     return {"vram_mib": int(vram_gb * 1024) if vram_gb else None, "unified": unified,
-            "gpus": [{"name": "GPU de prueba", "vram_total_mib": int(vram_gb * 1024), "vendor": "nvidia"}] if vram_gb else [],
+            "gpus": [{"name": "Test GPU", "vram_total_mib": int(vram_gb * 1024), "vendor": "nvidia"}] if vram_gb else [],
             "ram": {"total_gb": ram_total, "available_gb": ram_avail, "used_gb": ram_total - ram_avail}}
 
 
@@ -20,7 +20,7 @@ class ParserTests(unittest.TestCase):
     def test_meminfo(self):
         r = parse_meminfo("MemTotal:       16384000 kB\nMemFree:  100 kB\nMemAvailable:    8192000 kB\n")
         self.assertEqual((r["total"], r["available"]), (16384000 * 1024, 8192000 * 1024))
-        self.assertIsNone(parse_meminfo("nada"))
+        self.assertIsNone(parse_meminfo("nothing"))
 
     def test_vm_stat(self):
         text = ("Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:      1000.\n"
@@ -28,7 +28,7 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(parse_vm_stat(text, 10)["available"], 3500 * 16384)
 
     def test_nvidia_smi(self):
-        g = parse_nvidia_smi("NVIDIA GeForce RTX 3060, 12288, 1024, 551.23\nbasura\n")
+        g = parse_nvidia_smi("NVIDIA GeForce RTX 3060, 12288, 1024, 551.23\ngarbage\n")
         self.assertEqual(len(g), 1)
         self.assertEqual((g[0]["name"], g[0]["vram_total_mib"], g[0]["vram_used_mib"]), ("NVIDIA GeForce RTX 3060", 12288, 1024))
 
@@ -49,8 +49,8 @@ class RecommendationTests(unittest.TestCase):
         hw = machine(vram_gb=8)
         r = recommend(hw)
         self.assertEqual((r["model"], r["fit"]), ("qwen2.5:7b", "gpu"))
-        self.assertEqual(fit(hw, "qwen2.5:7b", "q5_K_M"), "gpu")       # Q5 todavía cabe
-        self.assertEqual(fit(hw, "qwen2.5:7b", "q8_0"), "hybrid")       # Q8 ya no cabe entero
+        self.assertEqual(fit(hw, "qwen2.5:7b", "q5_K_M"), "gpu")       # Q5 still fits
+        self.assertEqual(fit(hw, "qwen2.5:7b", "q8_0"), "hybrid")       # Q8 no longer fits entirely
         self.assertEqual(fit(hw, "qwen2.5:14b"), "hybrid")
 
     def test_never_recommends_a_model_that_does_not_fit_on_gpu(self):
@@ -90,7 +90,7 @@ class RecommendationTests(unittest.TestCase):
         q7 = next(f for f in cat if f["id"] == "qwen2.5:7b")
         self.assertEqual([v["name"] for v in q7["variants"]],
                          ["qwen2.5:7b", "qwen2.5:7b-instruct-q5_K_M", "qwen2.5:7b-instruct-q8_0"])
-        self.assertEqual(q7["variants"][0]["size_gb"], 4.7)   # coincide con el tamaño publicado en Ollama
+        self.assertEqual(q7["variants"][0]["size_gb"], 4.7)   # matches the size published by Ollama
         self.assertTrue(all(v["fit"] in hw_mod.FIT_LABELS for f in cat for v in f["variants"]))
 
     def test_light_models_available_for_modest_pcs(self):

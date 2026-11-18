@@ -1,5 +1,5 @@
-"""Detección, instalación e inicio de Ollama para el asistente de la interfaz.
-Solo ejecuta comandos fijos (nunca texto que venga del navegador)."""
+"""Detection, installation, and startup of Ollama for the interface wizard.
+Only runs fixed commands (never text coming from the browser)."""
 import os
 import platform
 import re
@@ -49,10 +49,10 @@ def find_ollama():
 def can_auto_install():
     system = platform.system()
     if system == "Windows":
-        return True  # winget o descarga directa del instalador oficial
+        return True  # winget or direct download of the official installer
     if system == "Darwin":
         return shutil.which("brew") is not None
-    return False  # Linux: el instalador oficial necesita sudo; se muestra el comando
+    return False  # Linux: the official installer needs sudo; the command is shown
 
 
 def detect(settings):
@@ -88,7 +88,7 @@ def _mb(n):
 
 
 def parse_winget_progress(line):
-    """winget imprime '123 MB / 800 MB' mientras descarga. Devuelve un evento de progreso o None."""
+    """winget prints '123 MB / 800 MB' while downloading. Returns a progress event or None."""
     m = _BYTES_RE.search(line)
     if not m:
         return None
@@ -98,12 +98,12 @@ def parse_winget_progress(line):
         return None
     pct = min(100, int(100 * done / total))
     if pct >= 100:
-        return {"type": "progress", "percent": None, "text": "Instalando Ollama…"}
-    return {"type": "progress", "percent": pct, "text": "Descargando Ollama · %s de %s" % (_mb(done), _mb(total))}
+        return {"type": "progress", "percent": None, "text": "Installing Ollama…"}
+    return {"type": "progress", "percent": pct, "text": "Downloading Ollama · %s of %s" % (_mb(done), _mb(total))}
 
 
 def _run(cmd, progress_parser=None):
-    """Ejecuta un comando fijo y emite su salida como eventos de log/progreso. Devuelve el código de salida."""
+    """Runs a fixed command and emits its output as log/progress events. Returns the exit code."""
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
                             encoding="utf-8", errors="replace", creationflags=_no_window())
     for raw in proc.stdout:
@@ -133,52 +133,52 @@ def _download_windows_installer():
             if pct != last:
                 last = pct
                 yield {"type": "progress", "percent": pct,
-                       "text": "Descargando instalador de Ollama · %s%s" % (_mb(done), " de " + _mb(total) if total else "")}
+                       "text": "Downloading Ollama installer · %s%s" % (_mb(done), " of " + _mb(total) if total else "")}
     return dest
 
 
 def install_ollama():
-    """Generador de eventos {'type': 'log'|'done'}. Lanza InstallError si no se puede."""
+    """Event generator {'type': 'log'|'done'}. Raises InstallError on failure."""
     if not _lock.acquire(blocking=False):
-        raise InstallError("Ya hay una instalación en curso.")
+        raise InstallError("An installation is already in progress.")
     try:
         system = platform.system()
         if system == "Windows":
             winget = shutil.which("winget")
             if winget:
-                yield {"type": "log", "text": "Instalando Ollama con winget…"}
+                yield {"type": "log", "text": "Installing Ollama with winget…"}
                 code = yield from _run([winget, "install", "-e", "--id", "Ollama.Ollama",
                                         "--accept-package-agreements", "--accept-source-agreements"],
                                        parse_winget_progress)
                 if code != 0 and not find_ollama():
-                    raise InstallError("winget terminó con el código %s." % code)
+                    raise InstallError("winget exited with code %s." % code)
             else:
                 try:
                     installer = yield from _download_windows_installer()
                 except OSError as e:
-                    raise InstallError("No se pudo descargar el instalador: %s" % e)
-                yield {"type": "progress", "percent": None, "text": "Instalando Ollama…"}
+                    raise InstallError("Could not download the installer: %s" % e)
+                yield {"type": "progress", "percent": None, "text": "Installing Ollama…"}
                 code = yield from _run([str(installer), "/SILENT"])
                 if code != 0 and not find_ollama():
-                    raise InstallError("El instalador terminó con el código %s." % code)
+                    raise InstallError("The installer exited with code %s." % code)
         elif system == "Darwin" and shutil.which("brew"):
-            yield {"type": "progress", "percent": None, "text": "Instalando Ollama con Homebrew…"}
+            yield {"type": "progress", "percent": None, "text": "Installing Ollama with Homebrew…"}
             code = yield from _run(["brew", "install", "ollama"])
             if code != 0:
-                raise InstallError("brew terminó con el código %s." % code)
+                raise InstallError("brew exited with code %s." % code)
         else:
-            raise InstallError("En este sistema hay que instalar Ollama a mano: %s" % (
+            raise InstallError("On this system you must install Ollama manually: %s" % (
                 LINUX_INSTALL_CMD if system == "Linux" else DOWNLOAD_PAGE))
         if not find_ollama():
-            raise InstallError("La instalación terminó pero no se encontró Ollama.")
-        yield {"type": "progress", "percent": 100, "text": "Ollama instalado"}
+            raise InstallError("Installation finished but Ollama was not found.")
+        yield {"type": "progress", "percent": 100, "text": "Ollama installed"}
         yield {"type": "done"}
     finally:
         _lock.release()
 
 
 def start_ollama(host, timeout=30):
-    """Inicia 'ollama serve' en segundo plano y espera a que responda. Devuelve {'ok', 'error'}."""
+    """Starts 'ollama serve' in the background and waits for it to respond. Returns {'ok', 'error'}."""
     client = OllamaClient(host)
     try:
         client.version()
@@ -187,13 +187,13 @@ def start_ollama(host, timeout=30):
         pass
     path = find_ollama()
     if not path:
-        return {"ok": False, "error": "Ollama no está instalado."}
+        return {"ok": False, "error": "Ollama is not installed."}
     kwargs = {"creationflags": _no_window() | 0x00000200} if platform.system() == "Windows" else {"start_new_session": True}
     try:
         subprocess.Popen([path, "serve"], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                          stderr=subprocess.DEVNULL, **kwargs)
     except OSError as e:
-        return {"ok": False, "error": "No se pudo iniciar Ollama: %s" % e}
+        return {"ok": False, "error": "Could not start Ollama: %s" % e}
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
@@ -201,4 +201,4 @@ def start_ollama(host, timeout=30):
             return {"ok": True}
         except OllamaError:
             time.sleep(0.5)
-    return {"ok": False, "error": "Ollama no respondió en %d segundos." % timeout}
+    return {"ok": False, "error": "Ollama did not respond within %d seconds." % timeout}

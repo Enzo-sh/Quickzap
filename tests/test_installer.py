@@ -16,7 +16,7 @@ class InstallerUnitTests(unittest.TestCase):
 
         def fake_run(cmd, parser=None):
             calls.append(cmd)
-            yield {"type": "log", "text": "winget trabajando"}
+            yield {"type": "log", "text": "winget working"}
             return 0
 
         with mock.patch("platform.system", return_value="Windows"), \
@@ -55,7 +55,7 @@ class InstallerUnitTests(unittest.TestCase):
             installer._lock.release()
 
     def test_start_ollama_without_install_and_with_timeout(self):
-        host = "http://127.0.0.1:1"  # puerto cerrado
+        host = "http://127.0.0.1:1"  # closed port
         with mock.patch.object(installer, "find_ollama", return_value=None):
             self.assertFalse(installer.start_ollama(host)["ok"])
         with mock.patch.object(installer, "find_ollama", return_value="/x/ollama"), \
@@ -63,7 +63,7 @@ class InstallerUnitTests(unittest.TestCase):
             result = installer.start_ollama(host, timeout=1)
         self.assertEqual(popen.call_args[0][0], ["/x/ollama", "serve"])
         self.assertFalse(result["ok"])
-        self.assertIn("no respondió", result["error"])
+        self.assertIn("did not respond", result["error"])
 
     def test_start_ollama_noop_when_already_running(self):
         fake = FakeOllama().start()
@@ -95,14 +95,14 @@ class ProgressTests(unittest.TestCase):
     def test_winget_progress_parser(self):
         e = installer.parse_winget_progress("  ██████▒▒▒▒▒▒  200 MB /  800 MB")
         self.assertEqual((e["type"], e["percent"]), ("progress", 25))
-        self.assertIn("200 MB de 800 MB", e["text"])
+        self.assertIn("200 MB of 800 MB", e["text"])
         done = installer.parse_winget_progress("  ████████████  800 MB /  800 MB")
-        self.assertIsNone(done["percent"])                       # terminó de bajar: ahora instala
-        self.assertIn("Instalando", done["text"])
-        self.assertIsNone(installer.parse_winget_progress("Encontrado Ollama [Ollama.Ollama] Versión 0.9"))
+        self.assertIsNone(done["percent"])                       # download finished: now installing
+        self.assertIn("Installing", done["text"])
+        self.assertIsNone(installer.parse_winget_progress("Found Ollama [Ollama.Ollama] Version 0.9"))
 
     def test_run_turns_winget_output_into_progress_events(self):
-        out = "Encontrado Ollama\n  ███▒▒▒  100 MB / 400 MB\r  ██████  300 MB / 400 MB\nCorrecto\n"
+        out = "Found Ollama\n  ███▒▒▒  100 MB / 400 MB\r  ██████  300 MB / 400 MB\nSuccess\n"
         proc = mock.Mock(); proc.stdout = io.StringIO(out); proc.wait.return_value = 0
         with mock.patch("subprocess.Popen", return_value=proc):
             gen = installer._run(["winget"], installer.parse_winget_progress)
@@ -113,7 +113,7 @@ class ProgressTests(unittest.TestCase):
             except StopIteration as stop:
                 code = stop.value
         self.assertEqual(code, 0)
-        # dos avances en la misma línea (separados por \r): se informa el más reciente
+        # two progress updates on the same line (separated by \r): report the latest one
         self.assertEqual([e["type"] for e in events], ["log", "progress", "log"])
         self.assertEqual(events[1]["percent"], 75)
 
@@ -135,7 +135,7 @@ class ProgressTests(unittest.TestCase):
                 dest = stop.value
             self.assertTrue(Path(dest).is_file())
         self.assertEqual([e["percent"] for e in events], [25, 50, 75, 100])
-        self.assertIn("de 4 MB", events[-1]["text"])
+        self.assertIn("of 4 MB", events[-1]["text"])
 
     def test_install_ends_with_100_percent_then_done(self):
         def fake_run(cmd, parser=None):
@@ -144,7 +144,7 @@ class ProgressTests(unittest.TestCase):
         with mock.patch("platform.system", return_value="Windows"), mock.patch("shutil.which", return_value="w"), \
              mock.patch.object(installer, "_run", fake_run), mock.patch.object(installer, "find_ollama", return_value="o"):
             events = list(installer.install_ollama())
-        self.assertEqual(events[-2], {"type": "progress", "percent": 100, "text": "Ollama instalado"})
+        self.assertEqual(events[-2], {"type": "progress", "percent": 100, "text": "Ollama installed"})
         self.assertEqual(events[-1], {"type": "done"})
 
 
@@ -160,11 +160,11 @@ class SetupEndpointTests(test_api.ServerCase):
 
     def test_install_streams_events_and_errors(self):
         def ok_install():
-            yield {"type": "log", "text": "paso 1"}
+            yield {"type": "log", "text": "step 1"}
             yield {"type": "done"}
 
         def bad_install():
-            raise installer.InstallError("sin permisos")
+            raise installer.InstallError("no permissions")
             yield  # pragma: no cover
 
         with mock.patch.object(installer, "install_ollama", ok_install):
@@ -173,15 +173,15 @@ class SetupEndpointTests(test_api.ServerCase):
         with mock.patch.object(installer, "install_ollama", bad_install):
             ev = self.stream("/api/setup/install-ollama", {})
         self.assertEqual((ev[-1]["type"], ev[-1]["phase"]), ("error", "install"))
-        self.assertIn("permisos", ev[-1]["message"].lower())
+        self.assertIn("permissions", ev[-1]["message"].lower())
         self.assertTrue(ev[-1]["hint"])
 
     def test_install_closes_clean_even_when_body_is_never_read(self):
-        # /api/setup/install-ollama no consume el cuerpo del POST: si el servidor cierra la
-        # conexión con esos bytes sin leer, macOS responde RST (no FIN) y el cliente pierde
-        # la respuesta entera con ConnectionResetError 54. El drenaje debe correr igual.
+        # /api/setup/install-ollama does not consume the POST body: if the server closes the
+        # connection with those bytes unread, macOS responds with RST (not FIN) and the client loses
+        # the whole response with ConnectionResetError 54. The drain must still run.
         def ok_install():
-            yield {"type": "log", "text": "paso 1"}
+            yield {"type": "log", "text": "step 1"}
             yield {"type": "done"}
 
         drained = []

@@ -1,7 +1,7 @@
-"""Detección de hardware y recomendación de modelos.
+"""Hardware detection and model recommendation.
 
-Las reglas de memoria son HEURÍSTICAS documentadas (no requisitos mínimos): se calibran con los
-benchmarks reales que aportan los usuarios (ver docs/BENCHMARKS.md). Sin dependencias externas.
+The memory rules are documented HEURISTICS (not minimum requirements): they are calibrated with
+real benchmarks contributed by users (see docs/BENCHMARKS.md). No external dependencies.
 """
 import ctypes
 import os
@@ -14,39 +14,39 @@ from functools import lru_cache
 
 GB = 1024 ** 3
 
-# ---- cuantizaciones y familias de modelos ---------------------------------------------------------
-# bytes por parámetro (ajustados a los tamaños publicados en Ollama: p. ej. qwen2.5:7b Q4_K_M ≈ 4.7 GB)
+# ---- quantizations and model families -----------------------------------------------------------
+# bytes per parameter (adjusted to the sizes published by Ollama: e.g. qwen2.5:7b Q4_K_M ≈ 4.7 GB)
 QUANTS = {
-    "q4_K_M": {"bpp": 0.615, "label": "Q4 · equilibrada (recomendada)", "short": "Q4"},
-    "q5_K_M": {"bpp": 0.715, "label": "Q5 · más calidad, ~15% más memoria", "short": "Q5"},
-    "q8_0": {"bpp": 1.065, "label": "Q8 · casi sin pérdida, ~75% más memoria", "short": "Q8"},
+    "q4_K_M": {"bpp": 0.615, "label": "Q4 · balanced (recommended)", "short": "Q4"},
+    "q5_K_M": {"bpp": 0.715, "label": "Q5 · higher quality, ~15% more memory", "short": "Q5"},
+    "q8_0": {"bpp": 1.065, "label": "Q8 · nearly lossless, ~75% more memory", "short": "Q8"},
 }
 FAMILIES = [
     {"id": "qwen2.5:0.5b", "label": "Qwen 2.5 · 0.5B", "params_b": 0.49, "license": "Apache-2.0",
-     "note": "Mínimo. Solo para equipos muy limitados; respuestas básicas."},
+     "note": "Minimal. Only for very limited computers; basic answers."},
     {"id": "qwen2.5:1.5b", "label": "Qwen 2.5 · 1.5B", "params_b": 1.54, "license": "Apache-2.0",
-     "note": "Muy liviano, para equipos modestos."},
-    {"id": "qwen2.5:3b", "label": "Qwen 2.5 · 3B", "params_b": 3.09, "license": "Qwen Research (revisar)",
-     "note": "Rápido y correcto en español. Buena opción sin GPU potente."},
+     "note": "Very lightweight, for modest computers."},
+    {"id": "qwen2.5:3b", "label": "Qwen 2.5 · 3B", "params_b": 3.09, "license": "Qwen Research",
+     "note": "Fast and accurate in Spanish. Good choice without a powerful GPU."},
     {"id": "llama3.2:3b", "label": "Llama 3.2 · 3B", "params_b": 3.21, "license": "Llama 3.2 Community",
-     "note": "Alternativa liviana de Meta."},
+     "note": "Lightweight alternative from Meta."},
     {"id": "qwen2.5:7b", "label": "Qwen 2.5 · 7B", "params_b": 7.62, "license": "Apache-2.0",
-     "note": "Muy buen equilibrio calidad/velocidad."},
+     "note": "Very good quality/speed balance."},
     {"id": "llama3.1:8b", "label": "Llama 3.1 · 8B", "params_b": 8.03, "license": "Llama 3.1 Community",
-     "note": "Alternativa de Meta, muy capaz en conversación."},
+     "note": "Alternative from Meta, very capable in conversation."},
     {"id": "qwen2.5:14b", "label": "Qwen 2.5 · 14B", "params_b": 14.7, "license": "Apache-2.0",
-     "note": "Más calidad; requiere GPU grande o bastante RAM."},
+     "note": "Higher quality; requires a large GPU or plenty of RAM."},
 ]
-# Orden de preferencia para recomendar (Qwen rinde bien en español). Las demás quedan como alternativas.
+# Preference order for recommendations (Qwen performs well in Spanish). The others remain as alternatives.
 RECOMMEND_ORDER = ["qwen2.5:14b", "qwen2.5:7b", "qwen2.5:3b", "qwen2.5:1.5b", "qwen2.5:0.5b"]
-CPU_ONLY_MAX_PARAMS_B = 3.5   # sin GPU la velocidad cae con el tamaño: se prefiere un modelo ≤ 3.5B
-RESERVE_VRAM_GB = 0.7         # el escritorio y el navegador también usan VRAM
-RESERVE_RAM_GB = 4.0          # sistema operativo + navegador
-FIT_LABELS = {"gpu": "Cabe en tu GPU", "hybrid": "GPU + RAM (más lento)",
-              "cpu": "Solo CPU (lento)", "no": "Excede los recursos de tu equipo"}
+CPU_ONLY_MAX_PARAMS_B = 3.5   # without a GPU speed drops with size: a model ≤ 3.5B is preferred
+RESERVE_VRAM_GB = 0.7         # the desktop and browser also use VRAM
+RESERVE_RAM_GB = 4.0          # operating system + browser
+FIT_LABELS = {"gpu": "Fits in your GPU", "hybrid": "GPU + RAM (slower)",
+              "cpu": "CPU only (slow)", "no": "Exceeds your computer's resources"}
 
 
-# ---- parsers puros (testeables con texto de ejemplo) ----------------------------------------------
+# ---- pure parsers (testable with sample text) ----------------------------------------------------
 def parse_meminfo(text):
     vals = {m.group(1): int(m.group(2)) * 1024 for m in re.finditer(r"^(\w+):\s+(\d+) kB", text, re.M)}
     if "MemTotal" not in vals:
@@ -71,7 +71,7 @@ def parse_nvidia_smi(csv):
     return out
 
 
-# ---- detección --------------------------------------------------------------------------------
+# ---- detection ----------------------------------------------------------------------------------
 def _nvidia_smi():
     exe = shutil.which("nvidia-smi")
     if not exe and platform.system() == "Windows":
@@ -115,7 +115,7 @@ def cpu_info():
 
 
 def ram():
-    """RAM total/disponible en GB (None si no se pudo leer)."""
+    """Total/available RAM in GB (None if it could not be read)."""
     system, raw = platform.system(), None
     try:
         if system == "Windows":
@@ -150,8 +150,8 @@ def _static_gpus():
                       "vendor": "nvidia", "estimated": False} for g in gpus)
     if platform.system() == "Darwin" and platform.machine() == "arm64":
         total = ram()["total_gb"]
-        if total:  # memoria unificada: la GPU puede usar ~2/3 de la RAM (estimación)
-            return ({"name": "Apple Silicon (memoria unificada)", "vram_total_mib": int(total * 1024 * 0.66),
+        if total:  # unified memory: the GPU can use ~2/3 of the RAM (estimate)
+            return ({"name": "Apple Silicon (unified memory)", "vram_total_mib": int(total * 1024 * 0.66),
                      "driver": None, "vendor": "apple", "estimated": True},)
     return ()
 
@@ -160,7 +160,7 @@ _vram_cache = {"t": 0.0, "v": None}
 
 
 def vram_usage():
-    """VRAM usada/total de la mejor GPU NVIDIA, en MiB (cache de 2 s; None si no hay)."""
+    """Used/total VRAM of the best NVIDIA GPU, in MiB (2 s cache; None if unavailable)."""
     if time.time() - _vram_cache["t"] > 2:
         gpus = _query_nvidia()
         best = max(gpus, key=lambda g: g["vram_total_mib"]) if gpus else None
@@ -174,20 +174,20 @@ def vram_mib():
 
 
 def snapshot():
-    """Foto del equipo sin datos personales (sin nombre de usuario ni de equipo)."""
+    """Snapshot of the computer with no personal data (no user or machine name)."""
     gpus = list(_static_gpus())
     return {"os": "%s %s" % (platform.system(), platform.release()), "cpu": cpu_info(), "ram": ram(), "gpus": gpus,
             "vram_mib": max((g["vram_total_mib"] for g in gpus), default=None),
             "unified": bool(gpus and gpus[0]["vendor"] == "apple")}
 
 
-# ---- ajuste de modelos a recursos ---------------------------------------------------------------
+# ---- matching models to resources ----------------------------------------------------------------
 def tag_for(family_id, quant):
     return family_id if quant == "q4_K_M" else "%s-instruct-%s" % (family_id, quant)
 
 
 def need_gb(params_b, quant):
-    """Memoria estimada: pesos + KV-cache (contexto 4k) + buffers."""
+    """Estimated memory: weights + KV-cache (4k context) + buffers."""
     return params_b * QUANTS[quant]["bpp"] + 0.6 + 0.06 * params_b
 
 
@@ -222,7 +222,7 @@ def catalog(hw=None):
 
 def _gpu_text(hw):
     g = (hw.get("gpus") or [None])[0]
-    return "%s · %.0f GB de VRAM" % (g["name"], g["vram_total_mib"] / 1024) if g else None
+    return "%s · %.0f GB of VRAM" % (g["name"], g["vram_total_mib"] / 1024) if g else None
 
 
 def recommend(hw=None):
@@ -233,13 +233,13 @@ def recommend(hw=None):
         if assess(hw, by_id[fid]["params_b"], "q4_K_M") == "gpu":
             need = need_gb(by_id[fid]["params_b"], "q4_K_M")
             return {"model": fid, "quant": "q4_K_M", "fit": "gpu", "warning": None, "vram_mib": hw.get("vram_mib"),
-                    "reason": "%s: este modelo cabe entero en la GPU (≈%.1f GB necesarios)." % (gpu, need)}
+                    "reason": "%s: this model fits entirely in the GPU (≈%.1f GB needed)." % (gpu, need)}
     for fid in RECOMMEND_ORDER:
         fam = by_id[fid]
         if fam["params_b"] <= CPU_ONLY_MAX_PARAMS_B and assess(hw, fam["params_b"], "q4_K_M") == "cpu":
-            why = "Sin GPU compatible" if not hw.get("vram_mib") else "Tu GPU es chica para modelos mayores"
+            why = "No compatible GPU" if not hw.get("vram_mib") else "Your GPU is too small for larger models"
             return {"model": fid, "quant": "q4_K_M", "fit": "cpu", "warning": None, "vram_mib": hw.get("vram_mib"),
-                    "reason": "%s: se recomienda un modelo liviano que corre bien en CPU." % why}
+                    "reason": "%s: a lightweight model that runs well on CPU is recommended." % why}
     return {"model": "qwen2.5:0.5b", "quant": "q4_K_M", "fit": "no", "vram_mib": hw.get("vram_mib"),
-            "reason": "Tu equipo tiene muy poca memoria libre.",
-            "warning": "Ni siquiera el modelo mínimo entra con holgura. Cerrá otros programas antes de probar."}
+            "reason": "Your computer has very little free memory.",
+            "warning": "Not even the smallest model fits comfortably. Close other programs before trying."}

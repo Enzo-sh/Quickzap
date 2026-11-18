@@ -1,4 +1,4 @@
-"""Servidor HTTP local: sirve la interfaz y expone la API (/api/...). Solo biblioteca estándar."""
+"""Local HTTP server: serves the interface and exposes the API (/api/...). Standard library only."""
 import json
 import re
 import socket
@@ -16,7 +16,7 @@ from .ollama import OllamaClient, OllamaError, PullProgress, normalize_model, va
 
 MAX_BODY = 1_000_000
 ALLOWED_HOSTS = {"localhost", "127.0.0.1", "::1"}
-_online = {"t": 0.0, "v": None, "busy": False}  # v=None: todavía no se sabe
+_online = {"t": 0.0, "v": None, "busy": False}  # v=None: not known yet
 
 
 def _probe_internet():
@@ -29,7 +29,7 @@ def _probe_internet():
 
 
 def internet_now():
-    """Comprobación síncrona (solo para la consola: el servidor usa internet_available)."""
+    """Synchronous check (console only: the server uses internet_available)."""
     try:
         socket.create_connection(("1.1.1.1", 53), timeout=1.5).close()
         return True
@@ -38,7 +38,7 @@ def internet_now():
 
 
 def internet_available():
-    """Nunca bloquea: devuelve el último resultado (o None si aún no se sabe) y refresca en segundo plano."""
+    """Never blocks: returns the last result (or None if not known yet) and refreshes in the background."""
     if time.time() - _online["t"] > 15 and not _online["busy"]:
         _online["busy"] = True
         threading.Thread(target=_probe_internet, daemon=True).start()
@@ -46,7 +46,7 @@ def internet_available():
 
 
 def build_messages(settings, history):
-    """Instrucciones del sistema + contexto de la conversación (RAG y memoria irán en etapas siguientes)."""
+    """System instructions + conversation context (RAG and memory will come in later stages)."""
     system = config.SYSTEM_PROMPT.format(personality=settings["personality"], today=date.today().isoformat())
     return [{"role": "system", "content": system}] + history
 
@@ -54,9 +54,9 @@ def build_messages(settings, history):
 def friendly_error(err, model):
     text = str(err)
     if err.unreachable:
-        return "No pude conectar con Ollama. ¿Está iniciado? Probá con «ollama serve» o abrí el asistente (⇩)."
+        return "Could not connect to Ollama. Is it running? Try “ollama serve” or open the wizard (⇩)."
     if err.status == 404 or "not found" in text.lower():
-        return "El modelo «%s» no está instalado. Descargalo con: python -m quickzap pull %s" % (model, model)
+        return "The model “%s” is not installed. Download it with: python -m quickzap pull %s" % (model, model)
     info = diagnostics.explain(text)
     return "%s. %s" % (info["title"], info["hint"]) if info["matched"] else text
 
@@ -65,9 +65,9 @@ class Handler(BaseHTTPRequestHandler):
     server_version = "Quickzap/0.1"
 
     def log_message(self, fmt, *args):
-        pass  # silencioso; los errores reales se imprimen en _dispatch
+        pass  # silent; real errors are printed in _dispatch
 
-    # ---- infraestructura ----
+    # ---- infrastructure ----
     def do_GET(self): self._dispatch("GET")
     def do_POST(self): self._dispatch("POST")
     def do_DELETE(self): self._dispatch("DELETE")
@@ -77,33 +77,33 @@ class Handler(BaseHTTPRequestHandler):
         try:
             host = self.headers.get("Host", "")
             if urlparse("//" + host).hostname not in ALLOWED_HOSTS:
-                return self._json({"error": "Host no permitido."}, 403)
+                return self._json({"error": "Host not allowed."}, 403)
             origin = self.headers.get("Origin")
             if method != "GET" and origin and urlparse(origin).netloc != host:
-                return self._json({"error": "Origen no permitido."}, 403)
+                return self._json({"error": "Origin not allowed."}, 403)
             path = urlparse(self.path).path
             for m, pattern, fn in ROUTES:
                 match = m == method and re.fullmatch(pattern, path)
                 if match:
                     return fn(self, *match.groups())
-            self._json({"error": "No encontrado."}, 404)
+            self._json({"error": "Not found."}, 404)
         except ConnectionError:
-            pass  # el navegador cerró la conexión
+            pass  # the browser closed the connection
         except ValueError as e:
             self._json({"error": str(e)}, 400)
         except OllamaError as e:
             self._json({"error": friendly_error(e, db.get_settings()["model"])}, 502)
         except Exception:
             traceback.print_exc()
-            self._json({"error": "Error interno del servidor."}, 500)
+            self._json({"error": "Internal server error."}, 500)
         finally:
             self._drain_body()
 
     def _drain_body(self):
-        """Descarta el cuerpo del pedido que ningún handler leyó. Si queda sin leer al cerrar
-        la conexión, macOS manda un RST en vez de un FIN y el cliente pierde la respuesta ya
-        enviada (ConnectionResetError 54 en /api/setup/install-ollama, el único POST de stream
-        que no pasa por _body). Leer esos bytes garantiza un cierre limpio en los tres sistemas."""
+        """Discards the request body that no handler read. If left unread when closing
+        the connection, macOS sends an RST instead of a FIN and the client loses the already
+        sent response (ConnectionResetError 54 on /api/setup/install-ollama, the only streaming
+        POST that does not go through _body). Reading those bytes ensures a clean shutdown on all three systems."""
         if getattr(self, "_body_done", False):
             return
         try:
@@ -111,16 +111,16 @@ class Handler(BaseHTTPRequestHandler):
             if 0 < length <= MAX_BODY:
                 self.rfile.read(length)
         except (OSError, ValueError):
-            pass  # la conexión ya se cortó: se cierra igual
+            pass  # the connection is already closed: shut down anyway
 
     def _body(self):
         length = int(self.headers.get("Content-Length") or 0)
         if length > MAX_BODY:
-            raise ValueError("Solicitud demasiado grande.")
-        self._body_done = True  # el drenaje de cierre ya no tiene nada que descartar
+            raise ValueError("Request too large.")
+        self._body_done = True  # nothing left for the shutdown drain to discard
         data = json.loads(self.rfile.read(length) or b"{}")
         if not isinstance(data, dict):
-            raise ValueError("Se esperaba un objeto JSON.")
+            raise ValueError("Expected a JSON object.")
         return data
 
     def _json(self, obj, status=200):
@@ -143,7 +143,7 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(obj, ensure_ascii=False).encode() + b"\n")
         self.wfile.flush()
 
-    # ---- rutas ----
+    # ---- routes ----
     def page(self):
         raw = (config.ROOT / "web" / "index.html").read_bytes()
         self.send_response(200)
@@ -177,14 +177,14 @@ class Handler(BaseHTTPRequestHandler):
     def select_model(self):
         name = self._body().get("model")
         if not valid_model_name(name):
-            raise ValueError("Nombre de modelo inválido.")
+            raise ValueError("Invalid model name.")
         db.update_settings({"model": name})
         self._json({"ok": True, "model": name})
 
     def pull_model(self):
         name = self._body().get("model")
         if not valid_model_name(name):
-            raise ValueError("Nombre de modelo inválido.")
+            raise ValueError("Invalid model name.")
         client = OllamaClient(db.get_settings()["ollama_host"])
         progress = PullProgress()
         self._start_stream()
@@ -199,7 +199,7 @@ class Handler(BaseHTTPRequestHandler):
             self._emit({"type": "error", "message": friendly_error(e, name) if not info["matched"] else info["title"],
                         "hint": info["hint"], "phase": info["phase"]})
 
-    # ---- asistente de instalación ----
+    # ---- installation wizard ----
     def setup_detect(self):
         self._json(installer.detect(db.get_settings()))
 
@@ -216,13 +216,13 @@ class Handler(BaseHTTPRequestHandler):
     def setup_start(self):
         self._json(installer.start_ollama(db.get_settings()["ollama_host"]))
 
-    # ---- benchmark y estadísticas ----
+    # ---- benchmark and statistics ----
     def benchmark_run(self):
         body = self._body()
         s = db.get_settings()
         name = body.get("model") or s["model"]
         if not valid_model_name(name):
-            raise ValueError("Nombre de modelo inválido.")
+            raise ValueError("Invalid model name.")
         client = OllamaClient(s["ollama_host"])
         self._start_stream()
         report = benchmark.run(client, name, s["keep_alive"], long=bool(body.get("long")), emit=self._emit, num_ctx=s["num_ctx"])
@@ -257,7 +257,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def get_conv(self, cid):
         conv = db.get_conversation(int(cid))
-        self._json(conv or {"error": "No encontrada."}, 200 if conv else 404)
+        self._json(conv or {"error": "Not found."}, 200 if conv else 404)
 
     def delete_conv(self, cid):
         ok = db.delete_conversation(int(cid))
@@ -267,15 +267,15 @@ class Handler(BaseHTTPRequestHandler):
         body = self._body()
         text = str(body.get("message", "")).strip()
         if not text:
-            raise ValueError("El mensaje está vacío.")
+            raise ValueError("The message is empty.")
         if len(text) > 8000:
-            raise ValueError("El mensaje es demasiado largo (máximo 8000 caracteres).")
+            raise ValueError("The message is too long (maximum 8000 characters).")
         s = db.get_settings()
         cid = body.get("conversation_id")
         if cid is None:
             cid = db.create_conversation(text[:60], s["model"])
         elif not isinstance(cid, int) or not db.conversation_exists(cid):
-            raise ValueError("La conversación no existe.")
+            raise ValueError("The conversation does not exist.")
         db.add_message(cid, "user", text)
         messages = build_messages(s, db.history(cid, s["context_messages"]))
 
@@ -305,7 +305,7 @@ class Handler(BaseHTTPRequestHandler):
         except OllamaError as e:
             self._emit({"type": "error", "message": friendly_error(e, s["model"])})
         finally:
-            stream.close()  # cierra la conexión con Ollama y detiene la generación
+            stream.close()  # closes the connection to Ollama and stops generation
             if reply:
                 db.add_message(cid, "assistant", "".join(reply), s["model"])
 
@@ -332,7 +332,7 @@ ROUTES = [
 
 def make_server(host="127.0.0.1", port=8765):
     db.init()
-    internet_available()  # arranca la comprobación en segundo plano para que el estado ya esté listo
+    internet_available()  # starts the background check so the status is ready
     httpd = ThreadingHTTPServer((host, port), Handler)
     httpd.daemon_threads = True
     return httpd
@@ -342,18 +342,18 @@ def serve(host="127.0.0.1", port=8765, open_browser=True):
     try:
         httpd = make_server(host, port)
     except OSError:
-        print("No se pudo usar el puerto %d: probablemente ya hay otra copia de Quickzap abierta.\n"
-              "Cerrala, o iniciá esta con otro puerto: python -m quickzap --port %d" % (port, port + 1))
+        print("Could not use port %d: another copy of Quickzap is probably already open.\n"
+              "Close it, or start this one on a different port: python -m quickzap --port %d" % (port, port + 1))
         return 1
     url = "http://%s:%d/" % ("localhost" if host == "127.0.0.1" else host, httpd.server_address[1])
-    print("Quickzap en %s" % url)
-    print("Dejá esta ventana abierta mientras lo uses. Para salir: Ctrl+C o cerrá la ventana.")
+    print("Quickzap at %s" % url)
+    print("Keep this window open while using Quickzap. To exit: Ctrl+C or close the window.")
     if open_browser:
         threading.Timer(0.8, webbrowser.open, [url]).start()
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
-        print("\nHasta luego.")
+        print("\nGoodbye.")
     finally:
         httpd.server_close()
     return 0

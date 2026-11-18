@@ -1,5 +1,5 @@
-"""Pruebas de navegador del asistente y del panel de estadísticas (opcional; requiere playwright).
-Uso: python -m tests.e2e_wizard"""
+"""Browser tests for the wizard and the statistics panel (optional; requires playwright).
+Usage: python -m tests.e2e_wizard"""
 import tempfile
 import threading
 import time
@@ -11,7 +11,7 @@ from playwright.sync_api import sync_playwright
 from quickzap import config, db, hardware, installer, server
 from tests.fake_ollama import FakeOllama
 
-RTX3060 = {"os": "Windows 11", "cpu": {"name": "CPU de prueba", "threads": 12, "arch": "AMD64"},
+RTX3060 = {"os": "Windows 11", "cpu": {"name": "Test CPU", "threads": 12, "arch": "AMD64"},
            "ram": {"total_gb": 16.0, "available_gb": 10.0, "used_gb": 6.0}, "vram_mib": 8192, "unified": False,
            "gpus": [{"name": "NVIDIA GeForce RTX 3060", "vram_total_mib": 8192, "driver": None, "vendor": "nvidia", "estimated": False}]}
 
@@ -42,13 +42,13 @@ def scenario_model_missing(browser):
     page.on("pageerror", lambda e: errors.append(str(e)))
     page.goto(url)
     page.wait_for_selector("#wizard:not([hidden])")
-    assert "Elegí tu modelo" in title(page), title(page)
+    assert "Choose your model" in title(page), title(page)
     card7, card14 = page.locator(".model-option", has_text="Qwen 2.5 · 7B"), page.locator(".model-option", has_text="Qwen 2.5 · 14B")
     assert card7.locator("input").is_checked()
-    assert "Recomendado" in card7.inner_text() and "Cabe en tu GPU" in card7.inner_text()
-    assert "GPU + RAM (más lento)" in card14.inner_text()
+    assert "Recommended" in card7.inner_text() and "Fits in your GPU" in card7.inner_text()
+    assert "GPU + RAM (slower)" in card14.inner_text()
     assert page.locator(".model-option", has_text="Qwen 2.5 · 0.5B").locator("select option").count() == 3
-    print("tu equipo:", page.inner_text("#wizard-body p").splitlines()[0][:100])
+    print("your computer:", page.inner_text("#wizard-body p").splitlines()[0][:100])
     card7.locator("select").select_option(index=1)                      # Q5
     assert "(~5.4 GB)" in page.inner_text("#wizard-next"), page.inner_text("#wizard-next")
     card7.locator("select").select_option(index=0)                      # de vuelta a Q4
@@ -59,25 +59,25 @@ def scenario_model_missing(browser):
     page.wait_for_selector(".wizard-bar.indeterminate")
     page.wait_for_function("document.querySelector('.wizard-percent')?.textContent === '40%'")
     assert page.get_attribute(".wizard-bar", "aria-valuenow") == "40"
-    assert "Descargando qwen2.5:7b" in page.inner_text(".wizard-progress-text")
-    print("barra de descarga:", page.inner_text(".wizard-percent"), "|", page.inner_text(".wizard-progress-text"))
-    page.wait_for_function("document.getElementById('wizard-title').textContent.startsWith('Probando')")
-    page.wait_for_function("document.getElementById('wizard-body').textContent.includes('El modelo respondió')")
+    assert "Downloading qwen2.5:7b" in page.inner_text(".wizard-progress-text")
+    print("download bar:", page.inner_text(".wizard-percent"), "|", page.inner_text(".wizard-progress-text"))
+    page.wait_for_function("document.getElementById('wizard-title').textContent.startsWith('Testing')")
+    page.wait_for_function("document.getElementById('wizard-body').textContent.includes('The model replied')")
     assert page.locator(".wizard-stages").count() == 1
     assert page.locator(".wizard-stages li.stage-ok").count() == 5, page.inner_text(".wizard-stages")
-    for label in ("Velocidad", "Primer token", "Carga", "Memoria del modelo"):
+    for label in ("Speed", "First token", "Load", "Model memory"):
         assert label.lower() in page.inner_text("#wizard-body").lower(), label
-    print("informe:", page.inner_text("#wizard-body").replace("\n", " | ")[:260])
+    print("report:", page.inner_text("#wizard-body").replace("\n", " | ")[:260])
     fake.token_delay = 0.004
-    page.click("text=Medir estabilidad")
-    page.wait_for_function("document.getElementById('wizard-body').textContent.includes('Velocidad estable')")
-    print("estabilidad:", [t for t in page.inner_text("#wizard-body").splitlines() if "estable" in t][0])
+    page.click("text=Measure stability")
+    page.wait_for_function("document.getElementById('wizard-body').textContent.includes('Stable speed')")
+    print("stability:", [t for t in page.inner_text("#wizard-body").splitlines() if "stable" in t.lower()][0])
     page.click("#wizard-next")
-    assert "Todo listo" in title(page)
+    assert "All set" in title(page)
     page.click("#wizard-next")
     assert page.is_hidden("#wizard")
-    page.fill("#chat-input", "hola"); page.press("#chat-input", "Enter")
-    page.wait_for_function("[...document.querySelectorAll('.message-row.bot .bubble')].some(b => b.textContent.includes('Eco: hola'))")
+    page.fill("#chat-input", "hello"); page.press("#chat-input", "Enter")
+    page.wait_for_function("[...document.querySelectorAll('.message-row.bot .bubble')].some(b => b.textContent.includes('Echo: hello'))")
     assert db.get_settings()["model"] == "qwen2.5:7b"
     assert not errors, errors
     page.close(); stop(tmp, fake, httpd)
@@ -89,17 +89,17 @@ def scenario_install_ollama(browser):
 
     def fake_install():
         state["attempt"] += 1
-        yield {"type": "log", "text": "Instalando Ollama con winget…"}
+        yield {"type": "log", "text": "Installing Ollama with winget…"}
         if state["attempt"] == 1:
-            raise installer.InstallError("Access is denied")           # primer intento: falla
-        yield {"type": "progress", "percent": 25, "text": "Descargando Ollama · 200 MB de 800 MB"}
+            raise installer.InstallError("Access is denied")           # first attempt: fails
+        yield {"type": "progress", "percent": 25, "text": "Downloading Ollama · 200 MB of 800 MB"}
         time.sleep(0.5)
-        yield {"type": "progress", "percent": 60, "text": "Descargando Ollama · 480 MB de 800 MB"}
+        yield {"type": "progress", "percent": 60, "text": "Downloading Ollama · 480 MB of 800 MB"}
         time.sleep(0.5)
-        yield {"type": "progress", "percent": None, "text": "Instalando Ollama…"}
+        yield {"type": "progress", "percent": None, "text": "Installing Ollama…"}
         time.sleep(0.4)
         state["installed"] = True
-        yield {"type": "progress", "percent": 100, "text": "Ollama instalado"}
+        yield {"type": "progress", "percent": 100, "text": "Ollama installed"}
         yield {"type": "done"}
 
     def fake_start(host, timeout=30):
@@ -114,23 +114,23 @@ def scenario_install_ollama(browser):
         page.on("pageerror", lambda e: errors.append(str(e)))
         page.goto(url)
         page.wait_for_selector("#wizard:not([hidden])")
-        assert "Motor de IA local" in title(page) and page.is_disabled("#wizard-next")
-        page.click("text=Instalar Ollama")
-        page.wait_for_selector(".wizard-error")                       # 1.er intento: error comprensible
+        assert "Local AI engine" in title(page) and page.is_disabled("#wizard-next")
+        page.click("text=Install Ollama")
+        page.wait_for_selector(".wizard-error")                       # 1st attempt: understandable error
         err = page.inner_text(".wizard-error")
-        assert "Instalación: Faltan permisos" in err and "ollama.com/download" in err, err
-        print("error de instalación:", err.replace("\n", " | "))
-        page.click("text=Reintentar instalación")                     # reintento
+        assert "Installation: Missing permissions" in err and "ollama.com/download" in err, err
+        print("installation error:", err.replace("\n", " | "))
+        page.click("text=Retry installation")                        # retry
         assert page.locator("#wizard-body button").first.is_disabled()   # no se puede pulsar dos veces
-        assert page.locator(".wizard-error").count() == 0                # el error anterior se limpia al reintentar
+        assert page.locator(".wizard-error").count() == 0                # the previous error is cleared on retry
         page.wait_for_function("document.querySelector('.wizard-percent')?.textContent === '60%'")
-        assert "480 MB de 800 MB" in page.inner_text(".wizard-progress-text")
+        assert "480 MB of 800 MB" in page.inner_text(".wizard-progress-text")
         page.wait_for_selector(".wizard-bar.indeterminate")
-        page.wait_for_function("document.getElementById('wizard-body').textContent.includes('✓ Ollama está instalado y activo')")
+        page.wait_for_function("document.getElementById('wizard-body').textContent.includes('✓ Ollama is installed and running')")
         assert page.locator(".wizard-progress-block").count() == 0 and page.locator(".wizard-error").count() == 0
         page.click("#wizard-next")
-        assert "Elegí tu modelo" in title(page)
-        assert page.locator(".model-option", has_text="Qwen 2.5 · 7B").locator(".badge", has_text="Instalado").count() == 1
+        assert "Choose your model" in title(page)
+        assert page.locator(".model-option", has_text="Qwen 2.5 · 7B").locator(".badge", has_text="Installed").count() == 1
         page.click("#wizard-skip")
         assert page.is_hidden("#wizard")
         page.wait_for_function("document.getElementById('conn-text').textContent.includes('Ollama · qwen2.5:7b')")
@@ -147,37 +147,37 @@ def scenario_retry_after_failures(browser):
     fake.pull_error = "write /models/blob: no space left on device"
     page = browser.new_page()
     page.goto(url); page.wait_for_selector("#wizard:not([hidden])")
-    page.click("#wizard-next")                                        # descarga que falla
+    page.click("#wizard-next")                                        # download that fails
     page.wait_for_selector(".wizard-error")
     err = page.inner_text(".wizard-error")
-    assert "Descarga: No hay espacio suficiente en el disco" in err and "Liberá espacio" in err, err
-    assert page.inner_text("#wizard-next") == "Reintentar descarga"
-    print("error de descarga:", err.replace("\n", " | "))
+    assert "Download: Not enough disk space" in err and "Free up space" in err, err
+    assert page.inner_text("#wizard-next") == "Retry download"
+    print("download error:", err.replace("\n", " | "))
     fake.pull_error = None
     page.click("#wizard-next")                                        # reintento correcto
-    page.wait_for_function("document.getElementById('wizard-title').textContent.startsWith('Probando')")
-    page.wait_for_function("document.getElementById('wizard-body').textContent.includes('El modelo respondió')")
-    page.click("#wizard-back")                                        # elegir otro modelo: se puede volver
-    assert "Elegí tu modelo" in title(page)
+    page.wait_for_function("document.getElementById('wizard-title').textContent.startsWith('Testing')")
+    page.wait_for_function("document.getElementById('wizard-body').textContent.includes('The model replied')")
+    page.click("#wizard-back")                                        # choose another model: going back is allowed
+    assert "Choose your model" in title(page)
     page.close()
 
-    # error de carga en la prueba (memoria insuficiente) y reintento
+    # load error in the test (out of memory) and retry
     fake.fail_load = "model requires more system memory (10.0 GiB) than is available (6.0 GiB)"
     page = browser.new_page(); page.goto(url)
     page.wait_for_selector("#pull-model:not([hidden])")
-    assert page.is_hidden("#wizard")                                  # todo está instalado: el asistente no se abre solo
-    page.click("#pull-model")                                         # pero se puede reabrir cuando se quiera
+    assert page.is_hidden("#wizard")                                  # everything is installed: the wizard does not open by itself
+    page.click("#pull-model")                                         # but it can be reopened at any time
     page.wait_for_selector("#wizard:not([hidden])")
-    assert page.inner_text("#wizard-next") == "Usar este modelo"
-    page.click("#wizard-next")                                        # ya está instalado: pasa directo a la prueba
+    assert page.inner_text("#wizard-next") == "Use this model"
+    page.click("#wizard-next")                                        # already installed: goes straight to the test
     page.wait_for_selector(".wizard-error")
     err = page.inner_text(".wizard-error")
-    assert "Carga del modelo: El modelo no entra en la memoria" in err, err
+    assert "Model load: The model does not fit in" in err, err
     assert page.locator(".wizard-stages li.stage-error").count() == 1 and page.is_disabled("#wizard-next")
-    print("error de carga:", err.replace("\n", " | ")[:150])
+    print("load error:", err.replace("\n", " | ")[:150])
     fake.fail_load = None
-    page.click("text=Reintentar")
-    page.wait_for_function("document.getElementById('wizard-body').textContent.includes('El modelo respondió')")
+    page.click("text=Retry")
+    page.wait_for_function("document.getElementById('wizard-body').textContent.includes('The model replied')")
     assert not page.is_disabled("#wizard-next")
     page.close(); stop(tmp, fake, httpd)
 
@@ -188,20 +188,20 @@ def scenario_stats_panel(browser):
     page.on("pageerror", lambda e: errors.append(str(e)))
     page.goto(url); page.wait_for_selector("#open-stats:not([hidden])")
     assert page.is_hidden("#wizard")
-    page.fill("#chat-input", "hola"); page.press("#chat-input", "Enter")
-    page.wait_for_function("document.querySelector('.message-row.bot .message-note')?.textContent.includes('primer token')")
-    print("nota de la respuesta:", page.locator(".message-row.bot .message-note").last.inner_text())
+    page.fill("#chat-input", "hello"); page.press("#chat-input", "Enter")
+    page.wait_for_function("document.querySelector('.message-row.bot .message-note')?.textContent.includes('first token')")
+    print("reply note:", page.locator(".message-row.bot .message-note").last.inner_text())
     page.click("#open-stats")
     page.wait_for_function("document.getElementById('stats-body').textContent.includes('50 tok/s')")
     body = page.inner_text("#stats-body")
-    for label in ("Modelo actual", "Ollama", "Conexión", "Velocidad", "Primer token", "Tiempo de respuesta", "RAM del sistema",
-                  "VRAM (GPU)", "Memoria del modelo", "Conversaciones", "Espacio de datos"):
+    for label in ("Current model", "Ollama", "Connection", "Speed", "First token", "Response time", "System RAM",
+                  "VRAM (GPU)", "Model memory", "Conversations", "Data space"):
         assert label.lower() in body.lower(), label
-    assert "100% en GPU" in body and "Activo" in body
-    print("estadísticas:", body.replace("\n", " | ")[:300])
-    assert "Comparación de modelos" not in body
+    assert "100% on GPU" in body and "Running" in body
+    print("statistics:", body.replace("\n", " | ")[:300])
+    assert "Model comparison" not in body
     page.click("#stats-bench")
-    page.wait_for_function("document.getElementById('stats-body').textContent.includes('Comparación de modelos')", timeout=15000)
+    page.wait_for_function("document.getElementById('stats-body').textContent.includes('Model comparison')", timeout=15000)
     assert "qwen2.5:7b — 50 tokens/s" in page.inner_text("#stats-body")
     page.keyboard.press("Escape")
     assert page.is_hidden("#stats")

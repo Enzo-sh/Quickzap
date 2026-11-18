@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#212121">
-  <title>QuickZap · IA local</title>
+  <title>QuickZap · Local AI</title>
   <style>
-    /* ============ temas ============ */
+    /* ============ themes ============ */
     :root {
       color-scheme: dark;
       --canvas: #212121;
@@ -79,7 +79,7 @@
     }
     ::selection { background: color-mix(in srgb, var(--accent) 25%, transparent); }
 
-    /* ============ estructura ============ */
+    /* ============ structure ============ */
     .app { display: flex; height: 100dvh; }
     main {
       flex: 1; min-width: 0;
@@ -88,7 +88,7 @@
       transition: background .2s;
     }
 
-    /* ============ barra lateral ============ */
+    /* ============ sidebar ============ */
     #sidebar {
       width: 264px; flex: none;
       display: flex; flex-direction: column;
@@ -186,7 +186,7 @@
     .side-action:hover { background: var(--surface); color: var(--ink); }
     .side-action svg { width: 14px; height: 14px; }
 
-    /* ============ barra superior del chat ============ */
+    /* ============ chat top bar ============ */
     .topbar {
       display: flex; align-items: center; gap: 10px;
       height: 54px; padding: 0 14px;
@@ -219,7 +219,7 @@
     :root[data-theme="dark"] .theme-icon-sun { display: none; }
     :root[data-theme="light"] .theme-icon-moon { display: none; }
 
-    /* ============ área de mensajes ============ */
+    /* ============ message area ============ */
     .chat-scroll { position: relative; flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--surface-hover) transparent; }
     .chat-inner { max-width: 768px; margin: 0 auto; padding: 18px 20px 26px; display: flex; flex-direction: column; gap: 22px; }
     .state-banner {
@@ -287,7 +287,7 @@
     }
     .scroll-bottom svg { width: 15px; height: 15px; }
 
-    /* ============ bienvenida ============ */
+    /* ============ welcome ============ */
     .welcome {
       flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 6px; padding: 24px; text-align: center;
@@ -348,7 +348,7 @@
     .bubble th { background: var(--surface); font-weight: 650; }
     .bubble tr:last-child td { border-bottom: 0; }
 
-    /* ============ compositor ============ */
+    /* ============ composer ============ */
     .composer-zone { flex: none; padding: 4px 20px 14px; }
     .composer {
       display: flex; align-items: flex-end; gap: 8px;
@@ -379,7 +379,7 @@
     #stop-button { background: var(--accent); }
     .composer-hint { max-width: 768px; margin: 7px auto 0; color: var(--muted); text-align: center; font-size: 11px; }
 
-    /* ============ modales (asistente, estadísticas, ajustes, confirmar) ============ */
+    /* ============ modals (wizard, statistics, settings, confirm) ============ */
     .wizard, .modal {
       position: fixed; inset: 0; z-index: 30;
       display: grid; place-items: center;
@@ -465,7 +465,7 @@
     .stage-error { color: var(--danger); }
     .stage-running { color: var(--muted); }
 
-    /* ============ estadísticas y ajustes ============ */
+    /* ============ statistics and settings ============ */
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
     #stats-body { margin: 14px 0 18px; }
     .stat { padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
@@ -491,7 +491,7 @@
     .settings-error { margin: 0 0 10px; color: var(--danger); font-size: 12px; }
     .modal-text { margin: 10px 0 18px; color: var(--muted); font-size: 13px; line-height: 1.6; }
 
-    /* ============ toast y fondo móvil ============ */
+    /* ============ toast and mobile backdrop ============ */
     .toast {
       position: fixed; right: 20px; bottom: 20px; z-index: 40;
       max-width: min(380px, calc(100vw - 36px));
@@ -536,61 +536,61 @@
 <body>
   <div class="app">
     <!-- ============ barra lateral ============ -->
-    <aside id="sidebar" aria-label="Panel lateral">
+    <aside id="sidebar" aria-label="Sidebar">
       <div class="side-head">
         <div class="brand">
           <span class="brand-mark" data-zap aria-hidden="true"></span>
-          <span class="brand-copy"><span class="brand-name">QuickZap</span><span class="brand-tag">IA local</span></span>
+          <span class="brand-copy"><span class="brand-name">QuickZap</span><span class="brand-tag">Local AI</span></span>
         </div>
-        <button class="icon-btn" id="side-collapse" type="button" aria-label="Contraer panel" title="Contraer panel">
+        <button class="icon-btn" id="side-collapse" type="button" aria-label="Collapse sidebar" title="Collapse sidebar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9.5 4v16"/></svg>
         </button>
       </div>
       <div class="side-body">
-        <button class="new-chat" id="clear-chat" type="button" aria-label="Nuevo chat" title="Nuevo chat">
+        <button class="new-chat" id="clear-chat" type="button" aria-label="New chat" title="New chat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-          Nuevo chat
+          New chat
         </button>
         <div class="side-search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input id="conv-search" type="search" placeholder="Buscar conversaciones" aria-label="Buscar conversaciones">
+          <input id="conv-search" type="search" placeholder="Search conversations" aria-label="Search conversations">
         </div>
-        <nav class="conv-list" id="conv-list" aria-label="Historial de conversaciones"></nav>
+        <nav class="conv-list" id="conv-list" aria-label="Conversation history"></nav>
       </div>
       <div class="side-foot">
-        <button class="model-card" id="model-card" type="button" title="Asistente: instalar y elegir modelos" aria-label="Modelo activo, abrir asistente">
+        <button class="model-card" id="model-card" type="button" title="Wizard: install and choose models" aria-label="Active model, open wizard">
           <span class="dot" id="conn-dot" aria-hidden="true"></span>
-          <span class="model-copy"><strong id="chat-status">Modelo</strong><small id="conn-text">Comprobando estado…</small></span>
+          <span class="model-copy"><strong id="chat-status">Model</strong><small id="conn-text">Checking status…</small></span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m7 9 5-5 5 5M7 15l5 5 5-5"/></svg>
         </button>
         <div class="side-actions">
-          <button class="side-action" id="open-settings" type="button" aria-label="Configuración" title="Configuración">
+          <button class="side-action" id="open-settings" type="button" aria-label="Settings" title="Settings">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
-            Ajustes
+            Settings
           </button>
         </div>
       </div>
     </aside>
     <div id="backdrop" aria-hidden="true"></div>
 
-    <!-- ============ área principal ============ -->
+    <!-- ============ main area ============ -->
     <main>
       <header class="topbar">
-        <button class="icon-btn" id="sidebar-toggle" type="button" aria-label="Abrir panel" title="Panel">
+        <button class="icon-btn" id="sidebar-toggle" type="button" aria-label="Open sidebar" title="Sidebar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
         <div class="topbar-model">
-          <select class="model-select" id="model-select" aria-label="Modelo de IA" title="Modelo de IA" hidden></select>
+          <select class="model-select" id="model-select" aria-label="AI model" title="AI model" hidden></select>
         </div>
         <div class="topbar-spacer"></div>
         <div class="topbar-tools">
-          <button class="icon-btn" id="pull-model" type="button" aria-label="Asistente de modelos" title="Asistente: instalar y elegir modelos" hidden>
+          <button class="icon-btn" id="pull-model" type="button" aria-label="Model wizard" title="Wizard: install and choose models" hidden>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
           </button>
-          <button class="icon-btn" id="open-stats" type="button" aria-label="Estadísticas" title="Estadísticas de rendimiento" hidden>
+          <button class="icon-btn" id="open-stats" type="button" aria-label="Statistics" title="Performance statistics" hidden>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10m6 10V4m6 16v-7m4 7H2"/></svg>
           </button>
-          <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch theme" title="Switch theme">
             <svg class="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
             <svg class="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
           </button>
@@ -604,96 +604,96 @@
       </div>
 
       <div class="chat-scroll" id="chat-scroll">
-        <section class="welcome" id="welcome" aria-label="Bienvenida">
+        <section class="welcome" id="welcome" aria-label="Welcome">
           <span class="brand-mark" data-zap aria-hidden="true"></span>
           <h1>QuickZap</h1>
-          <p>¿En qué puedo ayudarte?</p>
+          <p>How can I help you?</p>
           <div class="suggestions" id="suggestions">
-            <button class="suggestion" type="button" data-prompt="Explícame la diferencia entre RAM y VRAM">
+            <button class="suggestion" type="button" data-prompt="Explain the difference between RAM and VRAM">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
-              Explicame la diferencia entre RAM y VRAM
+              Explain the difference between RAM and VRAM
             </button>
-            <button class="suggestion" type="button" data-prompt="Escribí una función en Python que valide un correo electrónico">
+            <button class="suggestion" type="button" data-prompt="Write a Python function that validates an email address">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m8 8-4 4 4 4m8-8 4 4-4 4m-3-10-2 12"/></svg>
-              Escribí una función en Python que valide un correo
+              Write a Python function to validate an email
             </button>
-            <button class="suggestion" type="button" data-prompt="Resumime los pasos para dejar Ollama listo en Windows">
+            <button class="suggestion" type="button" data-prompt="Summarize the steps to get Ollama ready on Windows">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
-              Pasos para dejar Ollama listo en Windows
+              Steps to get Ollama ready on Windows
             </button>
-            <button class="suggestion" type="button" data-prompt="¿Qué modelo de IA conviene para una notebook con 8 GB de RAM?">
+            <button class="suggestion" type="button" data-prompt="Which AI model is best for a laptop with 8 GB of RAM?">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.8z"/></svg>
-              ¿Qué modelo conviene para 8 GB de RAM?
+              Which model is best for 8 GB of RAM?
             </button>
           </div>
         </section>
         <div class="chat-inner" id="chat-messages" hidden></div>
-        <button class="scroll-bottom" id="scroll-bottom" type="button" aria-label="Ir al último mensaje" title="Ir al último mensaje" hidden>
+        <button class="scroll-bottom" id="scroll-bottom" type="button" aria-label="Go to last message" title="Go to last message" hidden>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14m0 0 6-6m-6 6-6-6"/></svg>
         </button>
       </div>
 
       <div class="composer-zone">
         <form class="composer" id="chat-form">
-          <textarea id="chat-input" rows="1" placeholder="Preguntale algo a QuickZap..." aria-label="Escribe tu mensaje"></textarea>
-          <button class="composer-btn" id="stop-button" type="button" aria-label="Detener generación" title="Detener generación" hidden>
+          <textarea id="chat-input" rows="1" placeholder="Ask QuickZap something..." aria-label="Type your message"></textarea>
+          <button class="composer-btn" id="stop-button" type="button" aria-label="Stop generation" title="Stop generation" hidden>
             <svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>
           </button>
-          <button class="composer-btn" id="send-button" type="submit" aria-label="Enviar mensaje" title="Enviar">
+          <button class="composer-btn" id="send-button" type="submit" aria-label="Send message" title="Send">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5m0 0-6 6m6-6 6 6"/></svg>
           </button>
         </form>
-        <p class="composer-hint">QuickZap corre en tu computadora y puede equivocarse. Verificá la información importante.</p>
+        <p class="composer-hint">QuickZap runs on your computer and can make mistakes. Verify important information.</p>
       </div>
     </main>
   </div>
 
-  <!-- ============ asistente de instalación ============ -->
+  <!-- ============ installation wizard ============ -->
   <div class="wizard" id="wizard" role="dialog" aria-modal="true" aria-labelledby="wizard-title" hidden>
     <div class="wizard-card">
       <div class="wizard-steps" id="wizard-steps"></div>
       <h2 class="card-title" id="wizard-title"></h2>
       <div class="wizard-body" id="wizard-body" aria-live="polite"></div>
-      <div class="wizard-actions"><button class="button button-secondary" id="wizard-skip" type="button">Omitir por ahora</button><span class="spacer"></span><button class="button button-secondary" id="wizard-back" type="button">Atrás</button><button class="button button-primary" id="wizard-next" type="button">Siguiente</button></div>
+      <div class="wizard-actions"><button class="button button-secondary" id="wizard-skip" type="button">Skip for now</button><span class="spacer"></span><button class="button button-secondary" id="wizard-back" type="button">Back</button><button class="button button-primary" id="wizard-next" type="button">Next</button></div>
     </div>
   </div>
 
-  <!-- ============ estadísticas ============ -->
+  <!-- ============ statistics ============ -->
   <div class="wizard" id="stats" role="dialog" aria-modal="true" aria-labelledby="stats-title" hidden>
     <div class="wizard-card wide">
-      <h2 class="card-title" id="stats-title">Estadísticas</h2>
+      <h2 class="card-title" id="stats-title">Statistics</h2>
       <div class="stats-grid" id="stats-body" aria-live="off"></div>
-      <div class="wizard-actions"><button class="button button-secondary" id="stats-bench" type="button">Medir rendimiento</button><span class="spacer"></span><button class="button button-primary" id="stats-close" type="button">Cerrar</button></div>
+      <div class="wizard-actions"><button class="button button-secondary" id="stats-bench" type="button">Benchmark</button><span class="spacer"></span><button class="button button-primary" id="stats-close" type="button">Close</button></div>
     </div>
   </div>
 
-  <!-- ============ ajustes ============ -->
+  <!-- ============ settings ============ -->
   <div class="modal" id="settings" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden>
     <div class="wizard-card">
-      <h2 class="card-title" id="settings-title">Ajustes</h2>
+      <h2 class="card-title" id="settings-title">Settings</h2>
       <p class="settings-error" id="settings-error" role="alert" hidden></p>
       <div class="settings-fields">
-        <div class="field"><label for="set-personality">Personalidad</label><textarea id="set-personality" maxlength="500"></textarea><small>Instrucciones de estilo que recibe el modelo en cada conversación.</small></div>
+        <div class="field"><label for="set-personality">Personality</label><textarea id="set-personality" maxlength="500"></textarea><small>Style instructions the model receives in every conversation.</small></div>
         <div class="field-row">
-          <div class="field"><label for="set-temperature">Temperatura (0 – 2)</label><input id="set-temperature" type="number" min="0" max="2" step="0.1"><small>Valores bajos: respuestas más directas.</small></div>
-          <div class="field"><label for="set-context">Mensajes de contexto (2 – 100)</label><input id="set-context" type="number" min="2" max="100" step="1"><small>Cuántos mensajes anteriores recuerda.</small></div>
+          <div class="field"><label for="set-temperature">Temperature (0 – 2)</label><input id="set-temperature" type="number" min="0" max="2" step="0.1"><small>Lower values: more direct answers.</small></div>
+          <div class="field"><label for="set-context">Context messages (2 – 100)</label><input id="set-context" type="number" min="2" max="100" step="1"><small>How many previous messages it remembers.</small></div>
         </div>
         <div class="field-row">
-          <div class="field"><label for="set-numctx">Contexto en tokens (512 – 32768)</label><input id="set-numctx" type="number" min="512" max="32768" step="512"><small>Ventana de contexto del modelo.</small></div>
-          <div class="field"><label for="set-keepalive">keep_alive</label><input id="set-keepalive" type="text" placeholder="10m"><small>Cuánto queda cargado el modelo: 10m, 1h o -1.</small></div>
+          <div class="field"><label for="set-numctx">Context in tokens (512 – 32768)</label><input id="set-numctx" type="number" min="512" max="32768" step="512"><small>The model’s context window.</small></div>
+          <div class="field"><label for="set-keepalive">keep_alive</label><input id="set-keepalive" type="text" placeholder="10m"><small>How long the model stays loaded: 10m, 1h, or -1.</small></div>
         </div>
-        <div class="field"><label for="set-host">Dirección de Ollama</label><input id="set-host" type="text"><small>Por defecto http://127.0.0.1:11434.</small></div>
+        <div class="field"><label for="set-host">Ollama address</label><input id="set-host" type="text"><small>Defaults to http://127.0.0.1:11434.</small></div>
       </div>
-      <div class="wizard-actions"><button class="button button-secondary" id="settings-cancel" type="button">Cancelar</button><span class="spacer"></span><button class="button button-primary" id="settings-save" type="button">Guardar</button></div>
+      <div class="wizard-actions"><button class="button button-secondary" id="settings-cancel" type="button">Cancel</button><span class="spacer"></span><button class="button button-primary" id="settings-save" type="button">Save</button></div>
     </div>
   </div>
 
-  <!-- ============ confirmación ============ -->
+  <!-- ============ confirmation ============ -->
   <div class="modal" id="confirm" role="dialog" aria-modal="true" aria-labelledby="confirm-title" hidden>
     <div class="wizard-card">
-      <h2 class="card-title" id="confirm-title">Eliminar conversación</h2>
+      <h2 class="card-title" id="confirm-title">Delete conversation</h2>
       <p class="modal-text" id="confirm-text"></p>
-      <div class="wizard-actions"><button class="button button-secondary" id="confirm-cancel" type="button">Cancelar</button><span class="spacer"></span><button class="button button-danger" id="confirm-ok" type="button">Eliminar</button></div>
+      <div class="wizard-actions"><button class="button button-secondary" id="confirm-cancel" type="button">Cancel</button><span class="spacer"></span><button class="button button-danger" id="confirm-ok" type="button">Delete</button></div>
     </div>
   </div>
 
@@ -703,7 +703,7 @@
       "use strict";
       const $ = (id) => document.getElementById(id);
 
-      /* ================= utilidades ================= */
+      /* ================= utilities ================= */
       function h(tag, className, text) {
         const node = document.createElement(tag);
         if (className) node.className = className;
@@ -728,26 +728,26 @@
       const ZAP_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.8z"/></svg>';
       document.querySelectorAll("[data-zap]").forEach((el) => { el.innerHTML = ZAP_SVG; });
 
-      /* ================= tema ================= */
+      /* ================= theme ================= */
       const themeStorageKey = "quickzap-theme";
       function applyTheme(theme) {
         const selected = theme === "light" ? "light" : "dark";
         document.documentElement.dataset.theme = selected;
         document.querySelector('meta[name="theme-color"]').content = selected === "dark" ? "#212121" : "#ffffff";
-        try { localStorage.setItem(themeStorageKey, selected); } catch (_) { /* el tema sigue cambiando sin almacenamiento */ }
+        try { localStorage.setItem(themeStorageKey, selected); } catch (_) { /* the theme still changes without storage */ }
       }
       let initialTheme = "dark";
       try {
         const savedTheme = localStorage.getItem(themeStorageKey);
         if (savedTheme === "light" || savedTheme === "dark") initialTheme = savedTheme;
         else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) initialTheme = "light";
-      } catch (_) { /* tema oscuro predeterminado */ }
+      } catch (_) { /* default dark theme */ }
       applyTheme(initialTheme);
       $("theme-toggle").addEventListener("click", () => {
         applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
       });
 
-      /* ================= resaltado de sintaxis ================= */
+      /* ================= syntax highlighting ================= */
       const KEYWORDS = {
         python: "and as assert async await break class continue def del elif else except False finally for from global if import in is lambda None nonlocal not or pass raise return True try while with yield self print len range str int float list dict set tuple enumerate zip open",
         javascript: "async await break case catch class const continue debugger default delete do else export extends false finally for from function if import in instanceof let new null of return static super switch this throw true try typeof undefined var void while yield console document window"
@@ -769,9 +769,9 @@
       }
       function codeBlockHtml(lang, code) {
         const clean = (lang || "").toLowerCase();
-        return '<div class="code-block" data-lang="' + escapeHtml(clean) + '"><div class="code-head"><span>' + escapeHtml(lang || "código") +
-          '</span><div class="code-tools"><button type="button" class="code-copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar</button>' +
-          '<button type="button" class="code-copy code-dl" title="Descargar como archivo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>Descargar</button></div></div><pre><code>' +
+        return '<div class="code-block" data-lang="' + escapeHtml(clean) + '"><div class="code-head"><span>' + escapeHtml(lang || "code") +
+          '</span><div class="code-tools"><button type="button" class="code-copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>' +
+          '<button type="button" class="code-copy code-dl" title="Download as file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>Download</button></div></div><pre><code>' +
           highlightCode(code, clean) + "</code></pre></div>";
       }
       const CODE_EXTENSIONS = { python: "py", py: "py", python3: "py", javascript: "js", js: "js", node: "js", jsx: "jsx",
@@ -795,7 +795,7 @@
         link.click();
         link.remove();
         window.setTimeout(() => URL.revokeObjectURL(url), 4000);
-        showToast("Descargado como " + filename + ".");
+        showToast("Downloaded as " + filename + ".");
       }
       document.addEventListener("click", (event) => {
         const downloader = event.target.closest(".code-dl");
@@ -804,7 +804,7 @@
         if (!button) return;
         const code = button.closest(".code-block").querySelector("code");
         const text = code ? code.textContent : "";
-        const done = () => { button.lastChild.textContent = "Copiado"; setTimeout(() => { button.lastChild.textContent = "Copiar"; }, 1500); };
+        const done = () => { button.lastChild.textContent = "Copied"; setTimeout(() => { button.lastChild.textContent = "Copy"; }, 1500); };
         if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => {});
         else {
           const area = h("textarea"); area.value = text; document.body.append(area); area.select();
@@ -831,7 +831,7 @@
       function renderMarkdown(source) {
         let text = String(source).replace(/\r\n/g, "\n");
         const fences = (text.match(/```/g) || []).length;
-        if (fences % 2 === 1) text += "\n```"; // cierra bloques aún incompletos durante la generación
+        if (fences % 2 === 1) text += "\n```"; // close still-incomplete blocks during generation
         const blocks = [];
         text = text.replace(/```([\w+#.-]*)[^\S\n]*\n?([\s\S]*?)```/g, (match, lang, code) => {
           blocks.push(codeBlockHtml(lang, code.replace(/\n$/, "")));
@@ -890,16 +890,16 @@
         return out.join("");
       }
 
-      /* ================= referencias del DOM ================= */
+      /* ================= DOM references ================= */
       const chatScroll = $("chat-scroll"), chatEl = $("chat-messages"), welcomeEl = $("welcome");
       const input = $("chat-input"), sendButton = $("send-button"), stopButton = $("stop-button");
       const convListEl = $("conv-list"), convSearch = $("conv-search");
 
-      /* ================= estado ================= */
+      /* ================= state ================= */
       const api = { available: false, ready: false, status: null, conversationId: null, busy: false, optionsKey: "", controller: null, conversations: [], activeId: null };
       const conversationKey = "quickzap-conversation";
       function storeConversation(id) {
-        try { if (id) localStorage.setItem(conversationKey, String(id)); else localStorage.removeItem(conversationKey); } catch (_) { /* opcional */ }
+        try { if (id) localStorage.setItem(conversationKey, String(id)); else localStorage.removeItem(conversationKey); } catch (_) { /* optional */ }
       }
       async function postJson(path, body) {
         return fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -920,7 +920,7 @@
         }
       }
 
-      /* ================= mensajes ================= */
+      /* ================= messages ================= */
       function nearBottom() {
         return chatScroll.scrollHeight - chatScroll.scrollTop - chatScroll.clientHeight < 130;
       }
@@ -954,7 +954,7 @@
         setWelcome(false);
         const parts = createMessage(role);
         if (role === "user") {
-          parts.bubble.innerHTML = renderMarkdown(text); // el código pegado con ``` se muestra como bloque, igual que ChatGPT
+          parts.bubble.innerHTML = renderMarkdown(text); // pasted code with ``` is shown as a block, just like ChatGPT
         } else {
           parts.bubble.innerHTML = renderMarkdown(text);
           if (note) parts.note.textContent = note;
@@ -967,17 +967,17 @@
         const actions = h("div", "message-actions");
         const copy = h("button");
         copy.type = "button";
-        copy.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar';
+        copy.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy';
         copy.addEventListener("click", () => {
           const text = parts.bubble.textContent;
-          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => showToast("Mensaje copiado."), () => {});
-          else showToast("No se pudo copiar el mensaje.");
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => showToast("Message copied."), () => {});
+          else showToast("Could not copy the message.");
         });
         actions.append(copy);
         parts.row.querySelector(".message-content").append(actions);
       }
 
-      /* ================= chat en vivo ================= */
+      /* ================= live chat ================= */
       function updateComposer() {
         stopButton.hidden = !api.busy;
         sendButton.hidden = api.busy;
@@ -999,9 +999,9 @@
         event.preventDefault();
         const text = input.value.trim();
         if (!text || api.busy) return;
-        if (!api.available) { showToast("No hay conexión con el servidor local. Iniciá QuickZap desde su acceso directo."); return; }
-        // si el estado local quedó desactualizado (p. ej. el modelo se descargó recién), el servidor
-        // responde con el error amistoso correspondiente y se muestra en la burbuja
+        if (!api.available) { showToast("No connection to the local server. Start QuickZap from its shortcut."); return; }
+        // if the local state is stale (e.g. the model was just downloaded), the server
+        // responds with the matching friendly error and it is shown in the bubble
         addMessage(text, "user");
         input.value = ""; autoGrow(); updateComposer(); input.focus();
         streamChat(text);
@@ -1017,10 +1017,10 @@
         parts.note.textContent = api.status ? api.status.model.name : "";
         api.busy = true; updateComposer();
         api.controller = new AbortController();
-        // renderizado incremental y liviano: los bloques cerrados (separados por una línea en
-        // blanco) se pintan una sola vez; por frame solo se actualiza el bloque en construcción y,
-        // si es texto sin marcas de markdown, se agrega al nodo de texto sin re-parsear HTML.
-        // Además se pinta a ~30 fps como máximo para competir lo mínimo por CPU/GPU.
+        // lightweight incremental rendering: closed blocks (separated by a blank
+        // line) are painted once; per frame only the in-progress block is updated and,
+        // if it is text without markdown marks, it is appended to the text node without re-parsing HTML.
+        // It also paints at ~30 fps at most to compete as little as possible for CPU/GPU.
         let got = false, raw = "", stopped = false, paintedUpTo = 0, tail = null, tailLen = 0, tailPlain = false;
         let rafId = 0, lastPaint = 0, dirty = false;
         const MD_MARKS = /[\n`*_~#>|[\]]/; // si el texto no tiene nada de esto, no hace falta markdown
@@ -1037,7 +1037,7 @@
             if (tail) parts.bubble.insertBefore(template.content, tail);
             else parts.bubble.append(template.content);
             paintedUpTo = cut;
-            if (tail) { tailLen = 0; tailPlain = false; } // el contenido de la cola cambió de punto de partida
+            if (tail) { tailLen = 0; tailPlain = false; } // the tail content changed its starting point
           }
           const open = raw.slice(cut);
           if (!open) {
@@ -1046,7 +1046,7 @@
             if (!tail) { tail = document.createElement("div"); parts.bubble.append(tail); tailLen = 0; tailPlain = false; }
             const node = tail.firstChild && tail.firstChild.firstChild;
             if (tailPlain && node && node.nodeType === 3 && !MD_MARKS.test(open.slice(tailLen))) {
-              node.appendData(open.slice(tailLen)); // texto común: solo se agrega, sin re-render
+              node.appendData(open.slice(tailLen)); // plain text: just append, no re-render
             } else if (!MD_MARKS.test(open)) {
               tail.innerHTML = "<p>" + escapeHtml(open) + "</p>";
               tailPlain = true;
@@ -1080,7 +1080,7 @@
           });
           if (!response.ok || !response.body) {
             const detail = await response.json().catch(() => ({}));
-            throw new Error(detail.error || "El servidor respondió con un error.");
+            throw new Error(detail.error || "The server responded with an error.");
           }
           await readNdjson(response, (event) => {
             if (event.type === "meta") {
@@ -1093,26 +1093,26 @@
               queuePaint();
             } else if (event.type === "done") {
               parts.note.textContent = api.status.model.name + (event.tps ? " · " + event.tps + " tokens/s" : "") +
-                (event.ttft_ms != null ? " · primer token " + event.ttft_ms + " ms" : "") +
+                (event.ttft_ms != null ? " · first token " + event.ttft_ms + " ms" : "") +
                 (event.total_ms != null ? " · " + (event.total_ms / 1000).toFixed(1) + " s" : "");
             } else if (event.type === "error") {
               throw new Error(event.message);
             }
           });
-          if (!got) raw = "El modelo no devolvió texto. Probá de nuevo.";
+          if (!got) raw = "The model returned no text. Try again.";
         } catch (error) {
           parts.bubble.classList.remove("pending", "streaming");
           if (error.name === "AbortError") {
             stopped = true;
-            if (!got) raw = "Generación detenida.";
-            parts.note.textContent = "Generación detenida";
+            if (!got) raw = "Generation stopped.";
+            parts.note.textContent = "Generation stopped";
           } else {
             parts.bubble.classList.add("error-text");
             raw = (got ? raw + "\n\n" : "") + "⚠ " + error.message;
           }
         }
         parts.bubble.classList.remove("pending", "streaming");
-        stopped = true; // ningún rAF pendiente puede sobreescribir el pintado final
+        stopped = true; // no pending rAF can overwrite the final paint
         parts.bubble.innerHTML = renderMarkdown(raw);
         addCopyAction(parts);
         api.busy = false; api.controller = null; updateComposer();
@@ -1120,16 +1120,16 @@
         refreshStatus();
       }
 
-      /* ================= historial de conversaciones ================= */
+      /* ================= conversation history ================= */
       function groupLabel(timestamp) {
         const date = new Date(timestamp * 1000), now = new Date();
         const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
         const days = Math.floor((startOfDay(now) - startOfDay(date)) / 86400000);
-        if (days <= 0) return "Hoy";
-        if (days === 1) return "Ayer";
-        if (days < 7) return "Últimos 7 días";
-        if (days < 30) return "Últimos 30 días";
-        return "Más antiguos";
+        if (days <= 0) return "Today";
+        if (days === 1) return "Yesterday";
+        if (days < 7) return "Last 7 days";
+        if (days < 30) return "Last 30 days";
+        return "Older";
       }
       async function loadConversations() {
         try {
@@ -1150,7 +1150,7 @@
             groups.get(label).push(conv);
           });
         if (!groups.size) {
-          convListEl.append(h("p", "conv-empty", filter ? "Sin resultados para «" + filter + "»." : "Todavía no hay conversaciones. Escribí algo para empezar."));
+          convListEl.append(h("p", "conv-empty", filter ? "No results for “" + filter + "”." : "No conversations yet. Type something to get started."));
           return;
         }
         for (const [label, items] of groups) {
@@ -1159,19 +1159,19 @@
             const item = h("div", "conv-item" + (conv.id === api.activeId ? " active" : ""));
             item.setAttribute("role", "button");
             item.tabIndex = 0;
-            item.title = conv.title || "Conversación";
+            item.title = conv.title || "Conversation";
             item.addEventListener("keydown", (event) => {
               if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openConversation(conv.id); }
             });
-            item.append(h("span", "conv-title", conv.title || "Conversación"));
+            item.append(h("span", "conv-title", conv.title || "Conversation"));
             const del = h("button", "conv-del");
             del.type = "button";
-            del.setAttribute("aria-label", "Eliminar conversación");
-            del.setAttribute("title", "Eliminar");
+            del.setAttribute("aria-label", "Delete conversation");
+            del.setAttribute("title", "Delete");
             del.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7"/></svg>';
             del.addEventListener("click", (event) => {
               event.stopPropagation();
-              askConfirm("Eliminar conversación", "¿Seguro que querés eliminar «" + (conv.title || "Conversación") + "»? Esta acción no se puede deshacer.", () => deleteConversation(conv.id));
+              askConfirm("Delete conversation", "Are you sure you want to delete “" + (conv.title || "Conversation") + "”? This action cannot be undone.", () => deleteConversation(conv.id));
             });
             item.append(del);
             item.addEventListener("click", () => openConversation(conv.id));
@@ -1199,7 +1199,7 @@
           closeSidebar();
           input.focus();
         } catch (_) {
-          showToast("No se pudo abrir la conversación.");
+          showToast("Could not open the conversation.");
           loadConversations();
         }
       }
@@ -1207,7 +1207,7 @@
         try {
           const response = await fetch("/api/conversations/" + id, { method: "DELETE" });
           if (!response.ok) throw new Error("error");
-        } catch (_) { showToast("No se pudo eliminar la conversación."); }
+        } catch (_) { showToast("Could not delete the conversation."); }
         if (id === api.conversationId) newChat();
         loadConversations();
       }
@@ -1223,7 +1223,7 @@
       }
       $("clear-chat").addEventListener("click", newChat);
 
-      /* ================= panel lateral: abrir, cerrar, contraer ================= */
+      /* ================= sidebar: open, close, collapse ================= */
       function closeSidebar() { document.body.classList.remove("sidebar-open"); }
       $("sidebar-toggle").addEventListener("click", () => {
         if (document.body.classList.contains("sidebar-collapsed")) document.body.classList.remove("sidebar-collapsed");
@@ -1235,11 +1235,11 @@
         document.body.classList.remove("sidebar-open");
       });
 
-      /* ================= estado del backend ================= */
+      /* ================= backend status ================= */
       async function refreshStatus() {
         try {
           const response = await fetch("/api/status");
-          if (!response.ok) throw new Error("sin servidor");
+          if (!response.ok) throw new Error("no server");
           api.status = await response.json();
           api.available = true;
         } catch (_) {
@@ -1254,15 +1254,15 @@
         const banner = $("state-banner"), text = $("state-text"), action = $("state-action");
         let message = "", button = "", onAction = null, error = false;
         if (!api.available) {
-          message = "No hay conexión con el servidor local de QuickZap. Iniciá la aplicación desde su acceso directo.";
+          message = "No connection to QuickZap’s local server. Start the app from its shortcut.";
           error = true;
         } else if (!api.status.ollama.running) {
-          message = "Ollama no está activo. El asistente puede iniciarlo o instalarlo por vos.";
-          button = "Abrir asistente";
+          message = "Ollama is not running. The wizard can start or install it for you.";
+          button = "Open wizard";
           onAction = () => wizardOpen();
         } else if (!api.status.model.installed) {
-          message = "Falta descargar el modelo " + api.status.model.name + ".";
-          button = "Descargar modelo";
+          message = "Need to download the model " + api.status.model.name + ".";
+          button = "Download model";
           onAction = () => wizardOpen();
         }
         banner.classList.toggle("error", error);
@@ -1277,25 +1277,25 @@
         select.hidden = pull.hidden = statsBtn.hidden = !api.available;
         renderBanner();
         if (!api.available) {
-          $("conn-text").textContent = "Sin servidor local";
+          $("conn-text").textContent = "No local server";
           $("conn-dot").style.background = "var(--danger)";
-          $("chat-status").textContent = "Sin conexión";
+          $("chat-status").textContent = "Disconnected";
           return;
         }
         const s = api.status, name = s.model.name;
         let label, chat, color;
         if (!s.ollama.running) {
-          label = "Ollama no está activo";
-          chat = "Ollama no responde";
+          label = "Ollama is not running";
+          chat = "Ollama is not responding";
           color = "var(--danger)";
         } else if (!s.model.installed) {
-          label = "Falta descargar " + name;
-          chat = "Falta descargar " + name + " (abrí el asistente ⇩)";
+          label = "Need to download " + name;
+          chat = "Need to download " + name + " (open the wizard ⇩)";
           color = "var(--warn)";
         } else {
           const loaded = s.loaded.find((m) => m.name === name || m.name === name + ":latest");
-          const gpu = loaded && loaded.size ? " · " + Math.round(100 * loaded.size_vram / loaded.size) + "% en GPU" : "";
-          label = "Ollama · " + name + " · " + (s.online === null ? "comprobando conexión…" : s.online ? "con Internet" : "sin conexión");
+          const gpu = loaded && loaded.size ? " · " + Math.round(100 * loaded.size_vram / loaded.size) + "% on GPU" : "";
+          label = "Ollama · " + name + " · " + (s.online === null ? "checking connection…" : s.online ? "online" : "offline");
           chat = name + gpu;
           color = "var(--green)";
         }
@@ -1311,7 +1311,7 @@
           names.forEach((n) => {
             const option = document.createElement("option");
             option.value = n;
-            option.textContent = s.installed.some((m) => m.name === n) ? n : n + " (sin instalar)";
+            option.textContent = s.installed.some((m) => m.name === n) ? n : n + " (not installed)";
             select.append(option);
           });
           select.value = name;
@@ -1323,7 +1323,7 @@
       });
       $("model-card").addEventListener("click", () => wizardOpen());
 
-      /* ================= confirmación ================= */
+      /* ================= confirmation ================= */
       let confirmCallback = null;
       function askConfirm(title, text, onOk) {
         $("confirm-title").textContent = title;
@@ -1340,7 +1340,7 @@
         if (callback) callback();
       });
 
-      /* ================= ajustes ================= */
+      /* ================= settings ================= */
       const SETTINGS_FIELDS = [["set-personality", "personality"], ["set-temperature", "temperature"], ["set-context", "context_messages"],
                                ["set-numctx", "num_ctx"], ["set-keepalive", "keep_alive"], ["set-host", "ollama_host"]];
       async function openSettings() {
@@ -1374,25 +1374,25 @@
           ollama_host: $("set-host").value.trim()
         };
         for (const key of ["temperature", "context_messages", "num_ctx"]) {
-          if (!Number.isFinite(patch[key])) return showSettingsError("Revisá los valores numéricos.");
+          if (!Number.isFinite(patch[key])) return showSettingsError("Check the numeric values.");
         }
         try {
           const response = await postJson("/api/settings", patch);
           const data = await response.json();
-          if (!response.ok) throw new Error(data.error || "No se pudieron guardar los ajustes.");
+          if (!response.ok) throw new Error(data.error || "Could not save settings.");
           $("settings").hidden = true;
-          showToast("Ajustes guardados.");
+          showToast("Settings saved.");
           refreshStatus();
         } catch (error) {
           showSettingsError(error.message);
         }
       });
 
-      /* ================= asistente de instalación ================= */
+      /* ================= installation wizard ================= */
       const wiz = { step: 0, info: null, busy: false, selected: null, dismissed: false, logText: "", progress: null, error: null, report: null, stages: [], benchmarking: false, variants: {} };
-      const wizardSteps = ["Ollama", "Modelo", "Prueba", "Listo"];
-      const STAGE_LABELS = { connection: "Conexión con Ollama", model: "Modelo descargado", load: "Carga del modelo en memoria", generation: "Generación de texto", memory: "Uso de memoria", stability: "Estabilidad" };
-      const PHASE_LABELS = { install: "Instalación", download: "Descarga", load: "Carga del modelo", generation: "Generación de texto" };
+      const wizardSteps = ["Ollama", "Model", "Test", "Ready"];
+      const STAGE_LABELS = { connection: "Ollama connection", model: "Model downloaded", load: "Model loaded into memory", generation: "Text generation", memory: "Memory usage", stability: "Stability" };
+      const PHASE_LABELS = { install: "Installation", download: "Download", load: "Model load", generation: "Text generation" };
       const wizBody = $("wizard-body"), wizNext = $("wizard-next"), wizBack = $("wizard-back"), wizSkip = $("wizard-skip");
       const baseName = (name) => name.replace(/:latest$/, "");
       function wizButton(label, onClick, primary) {
@@ -1440,12 +1440,12 @@
         paintProgress(wizBody.querySelector(".wizard-progress-block"));
       }
       function pullText(event) {
-        const sizes = event.total ? formatBytes(event.completed || 0) + " de " + formatBytes(event.total) : "";
-        if (event.status.startsWith("pulling manifest")) return "Preparando la descarga de " + wiz.selected + "…";
-        if (event.status.startsWith("pulling")) return "Descargando " + wiz.selected + (sizes ? " · " + sizes : "");
-        if (event.status.startsWith("verifying")) return "Verificando archivos…";
-        if (event.status.startsWith("writing")) return "Finalizando…";
-        return event.status === "success" ? "Descarga completa" : event.status;
+        const sizes = event.total ? formatBytes(event.completed || 0) + " of " + formatBytes(event.total) : "";
+        if (event.status.startsWith("pulling manifest")) return "Preparing download of " + wiz.selected + "…";
+        if (event.status.startsWith("pulling")) return "Downloading " + wiz.selected + (sizes ? " · " + sizes : "");
+        if (event.status.startsWith("verifying")) return "Verifying files…";
+        if (event.status.startsWith("writing")) return "Finishing…";
+        return event.status === "success" ? "Download complete" : event.status;
       }
       function failure(event) {
         const error = new Error(event.message);
@@ -1461,7 +1461,7 @@
         if (error.hint) box.append(h("p", "wizard-note", error.hint));
         if (error.technical && error.technical !== error.title) {
           const d = h("details");
-          d.append(h("summary", "wizard-note", "Detalles técnicos"), h("pre", "wizard-log", error.technical));
+          d.append(h("summary", "wizard-note", "Technical details"), h("pre", "wizard-log", error.technical));
           box.append(d);
         }
         return box;
@@ -1478,7 +1478,7 @@
       async function wizardOpen(step) {
         wiz.dismissed = false;
         try { await wizardDetect(); } catch (_) { return; }
-        $("wizard").hidden = false; // se abre recién con los datos listos, para no mostrar un modal vacío
+        $("wizard").hidden = false; // only open once data is ready, to avoid showing an empty modal
         wiz.step = step != null ? step : (wiz.info.ollama_running ? 1 : 0);
         resetTest();
         wizardRender();
@@ -1491,25 +1491,25 @@
       }
       async function wizardTask(work, usesLog) {
         wiz.busy = true; wiz.error = null;
-        if (usesLog) { wiz.logText = ""; wiz.progress = { percent: null, text: "Preparando…" }; }
+        if (usesLog) { wiz.logText = ""; wiz.progress = { percent: null, text: "Preparing…" }; }
         wizardRender();
         try { await work(); } catch (error) { setError(error); if (usesLog) wizardLog("✗ " + error.message); }
         wiz.busy = false; wiz.progress = null;
-        try { await wizardDetect(); } catch (_) { /* se mantiene el estado anterior */ }
+        try { await wizardDetect(); } catch (_) { /* keep the previous state */ }
         wizardRender();
       }
       async function wizardStartOllama() {
-        wizardProgress(null, "Iniciando Ollama…");
+        wizardProgress(null, "Starting Ollama…");
         const result = await (await postJson("/api/setup/start-ollama", {})).json();
         if (!result.ok) {
-          const error = new Error(result.error || "No se pudo iniciar Ollama.");
-          error.hint = "Abrí la aplicación de Ollama desde el menú Inicio y tocá «Volver a comprobar».";
+          const error = new Error(result.error || "Could not start Ollama.");
+          error.hint = "Open the Ollama app from the Start menu and click “Check again”.";
           throw error;
         }
       }
       async function wizardInstallOllama() {
         const response = await postJson("/api/setup/install-ollama", {});
-        if (!response.ok) throw new Error("No se pudo iniciar la instalación.");
+        if (!response.ok) throw new Error("Could not start the installation.");
         await readNdjson(response, (event) => {
           if (event.type === "log") wizardLog(event.text);
           else if (event.type === "progress") wizardProgress(event.percent, event.text);
@@ -1519,12 +1519,12 @@
       }
       async function wizardDownload(name) {
         const response = await postJson("/api/models/pull", { model: name });
-        if (!response.ok) throw new Error("No se pudo iniciar la descarga.");
+        if (!response.ok) throw new Error("Could not start the download.");
         await readNdjson(response, (event) => {
           if (event.type === "progress") wizardProgress(event.percent, pullText(event));
           else if (event.type === "error") throw failure(event);
         });
-        wizardProgress(100, "Descarga completa");
+        wizardProgress(100, "Download complete");
       }
       function updateStage(event) {
         const entry = { stage: event.stage, status: event.status, detail: event.detail || "" };
@@ -1537,7 +1537,7 @@
         wizardRender();
         try {
           const response = await postJson("/api/benchmark", { model: wiz.selected, long });
-          if (!response.ok) throw new Error("No se pudo iniciar la prueba.");
+          if (!response.ok) throw new Error("Could not start the benchmark.");
           await readNdjson(response, (event) => {
             if (event.type === "stage") { updateStage(event); wizardRender(); }
             else if (event.type === "report") wiz.report = event.report;
@@ -1563,11 +1563,11 @@
           const row = h("div", "model-option" + (chosen.fit === "no" ? " disabled" : "")), radio = h("input"), copy = h("div"), strong = h("strong", null, family.label + " · ~" + chosen.size_gb + " GB");
           radio.type = "radio"; radio.name = "wiz-model"; radio.checked = chosen.name === wiz.selected; radio.disabled = wiz.busy || chosen.fit === "no";
           radio.addEventListener("change", () => { wiz.selected = chosen.name; resetTest(); wizardRender(); });
-          if (chosen.name === info.recommended) strong.append(h("span", "badge", "Recomendado"));
-          if (installed.has(baseName(chosen.name))) strong.append(h("span", "badge", "Instalado"));
+          if (chosen.name === info.recommended) strong.append(h("span", "badge", "Recommended"));
+          if (installed.has(baseName(chosen.name))) strong.append(h("span", "badge", "Installed"));
           strong.append(h("span", "badge" + (chosen.fit === "gpu" ? "" : " warn"), chosen.fit_label));
           const select = h("select");
-          select.setAttribute("aria-label", "Cuantización de " + family.label);
+          select.setAttribute("aria-label", "Quantization of " + family.label);
           select.disabled = wiz.busy;
           family.variants.forEach((v) => {
             const option = h("option", null, v.quant.split("_")[0].toUpperCase() + " · ~" + v.size_gb + " GB · " + v.fit_label);
@@ -1576,7 +1576,7 @@
           });
           select.value = chosen.name;
           select.addEventListener("change", () => { wiz.variants[family.id] = select.value; wiz.selected = select.value; resetTest(); wizardRender(); });
-          copy.append(strong, h("small", null, family.note + " Licencia: " + family.license + "."), select);
+          copy.append(strong, h("small", null, family.note + " License: " + family.license + "."), select);
           row.append(radio, copy);
           row.addEventListener("click", (event) => {
             if (!radio.disabled && !radio.checked && event.target.tagName !== "SELECT" && event.target.tagName !== "OPTION") {
@@ -1590,8 +1590,8 @@
           const row = h("div", "model-option"), radio = h("input"), copy = h("div"), strong = h("strong", null, name);
           radio.type = "radio"; radio.name = "wiz-model"; radio.checked = baseName(name) === baseName(wiz.selected); radio.disabled = wiz.busy;
           radio.addEventListener("change", () => { wiz.selected = name; resetTest(); wizardRender(); });
-          strong.append(h("span", "badge", "Instalado"));
-          copy.append(strong, h("small", null, "Ya instalado en Ollama."));
+          strong.append(h("span", "badge", "Installed"));
+          copy.append(strong, h("small", null, "Already installed in Ollama."));
           row.append(radio, copy);
           row.addEventListener("click", () => { if (!radio.disabled && !radio.checked) { radio.checked = true; radio.dispatchEvent(new Event("change")); } });
           cards.push(row);
@@ -1610,29 +1610,29 @@
         wizBack.disabled = busy;
         wizSkip.disabled = busy;
         wizNext.disabled = busy;
-        wizNext.textContent = "Siguiente";
+        wizNext.textContent = "Next";
         const title = $("wizard-title");
         if (wiz.step === 0) {
-          title.textContent = "Motor de IA local: Ollama";
+          title.textContent = "Local AI engine: Ollama";
           if (info.ollama_running) {
-            wizBody.append(h("p", "wizard-ok", "✓ Ollama está instalado y activo" + (info.ollama_version ? " (versión " + info.ollama_version + ")" : "")));
+            wizBody.append(h("p", "wizard-ok", "✓ Ollama is installed and running" + (info.ollama_version ? " (version " + info.ollama_version + ")" : "")));
             wizNext.disabled = false;
           } else {
             wizNext.disabled = true;
             const retry = Boolean(wiz.error), log = h("pre", "wizard-log", wiz.logText);
             if (wiz.error) wizBody.append(errorBlock(wiz.error));
             if (info.ollama_installed) {
-              wizBody.append(h("p", null, "Ollama está instalado, pero todavía no está iniciado."), wizButton(retry ? "Reintentar inicio" : "Iniciar Ollama", () => wizardTask(wizardStartOllama, true), true));
+              wizBody.append(h("p", null, "Ollama is installed, but it is not running yet."), wizButton(retry ? "Retry start" : "Start Ollama", () => wizardTask(wizardStartOllama, true), true));
             } else if (info.can_auto_install) {
-              wizBody.append(h("p", null, "Ollama no está instalado. QuickZap puede instalarlo por vos (se descarga desde ollama.com)."), wizButton(retry ? "Reintentar instalación" : "Instalar Ollama", () => wizardTask(wizardInstallOllama, true), true));
+              wizBody.append(h("p", null, "Ollama is not installed. QuickZap can install it for you (downloaded from ollama.com)."), wizButton(retry ? "Retry installation" : "Install Ollama", () => wizardTask(wizardInstallOllama, true), true));
             } else {
-              wizBody.append(h("p", null, "Ollama no está instalado. Instalalo y después tocá «Volver a comprobar»:"));
+              wizBody.append(h("p", null, "Ollama is not installed. Install it, then click “Check again”:"));
               if (info.manual_install) wizBody.append(h("code", "wizard-code", info.manual_install));
               const link = h("a", "wizard-link", info.download_page);
               link.href = info.download_page; link.target = "_blank"; link.rel = "noopener noreferrer";
               wizBody.append(link);
             }
-            wizBody.append(wizButton("Volver a comprobar", () => wizardTask(async () => {}, false), false));
+            wizBody.append(wizButton("Check again", () => wizardTask(async () => {}, false), false));
             wizBody.append(log);
             if (wiz.busy && wiz.progress) {
               const pb = progressBlock(), logNode = wizBody.querySelector(".wizard-log");
@@ -1640,56 +1640,56 @@
             }
           }
         } else if (wiz.step === 1) {
-          title.textContent = "Elegí tu modelo";
+          title.textContent = "Choose your model";
           const hw = info.hardware, gpu = hw.gpus && hw.gpus[0];
-          wizBody.append(h("p", "wizard-note", "Tu equipo: " + hw.cpu.name + " · RAM " + (hw.ram.total_gb || "?") + " GB (" + (hw.ram.available_gb != null ? hw.ram.available_gb : "?") + " GB libres)" + (gpu ? " · " + gpu.name : " · sin GPU")));
-          wizBody.append(h("p", "wizard-ok", "✓ Recomendado: " + info.recommended + " · " + info.recommendation.reason));
+          wizBody.append(h("p", "wizard-note", "Your computer: " + hw.cpu.name + " · RAM " + (hw.ram.total_gb || "?") + " GB (" + (hw.ram.available_gb != null ? hw.ram.available_gb : "?") + " GB free)" + (gpu ? " · " + gpu.name : " · no GPU")));
+          wizBody.append(h("p", "wizard-ok", "✓ Recommended: " + info.recommended + " · " + info.recommendation.reason));
           if (info.recommendation.warning) wizBody.append(h("p", "wizard-err", "⚠ " + info.recommendation.warning));
           const intro = wizBody.children.length;
           modelCards(info).forEach((card) => wizBody.append(card));
           const chosen = findVariant(wiz.selected), have = info.installed_models.some((n) => baseName(n) === baseName(wiz.selected));
-          wizNext.textContent = wiz.error ? "Reintentar descarga" : have ? "Usar este modelo" : "Descargar y usar" + (chosen ? " (~" + chosen.variant.size_gb + " GB)" : "");
+          wizNext.textContent = wiz.error ? "Retry download" : have ? "Use this model" : "Download and use" + (chosen ? " (~" + chosen.variant.size_gb + " GB)" : "");
           if (!have && chosen && chosen.variant.fit === "no") wizNext.disabled = true;
           if (wiz.error) wizBody.insertBefore(errorBlock(wiz.error), wizBody.children[intro]);
-          if (wiz.busy && !have && wiz.progress) { wizBody.insertBefore(progressBlock(), wizBody.children[intro]); wizNext.textContent = "Descargando…"; }
+          if (wiz.busy && !have && wiz.progress) { wizBody.insertBefore(progressBlock(), wizBody.children[intro]); wizNext.textContent = "Downloading…"; }
         } else if (wiz.step === 2) {
-          title.textContent = "Probando " + wiz.selected;
+          title.textContent = "Testing " + wiz.selected;
           if (!wiz.report && !wiz.benchmarking && !wiz.error) { wizardBenchmark(false); return; }
           const report = wiz.report;
           wizNext.disabled = !(report && report.ok) || wiz.benchmarking;
           if (wiz.stages.length) wizBody.append(stageList());
-          if (wiz.benchmarking) wizBody.append(h("p", "wizard-note", "Midiendo… la primera vez puede tardar mientras el modelo se carga en memoria."));
+          if (wiz.benchmarking) wizBody.append(h("p", "wizard-note", "Measuring… the first run may take a while while the model loads into memory."));
           if (report && report.ok) {
             const g = report.phases.generation, m = report.memory, grid = h("div", "stats-grid");
-            wizBody.append(h("p", "wizard-ok", "✓ El modelo respondió: “" + g.reply.slice(0, 60) + "”"));
-            grid.append(stat("Velocidad", g.tps ? g.tps + " tok/s" : "—", "tokens por segundo"),
-                        stat("Primer token", g.ttft_ms + " ms", "hasta empezar a responder"),
-                        stat("Carga", report.phases.load.seconds != null ? report.phases.load.seconds + " s" : "—", "tiempo en cargar el modelo"),
-                        stat("Memoria del modelo", m.model_gb != null ? m.model_gb + " GB" : "—", m.gpu_percent != null ? m.gpu_percent + "% en GPU · VRAM " + m.vram_gb + " GB · RAM " + m.ram_gb + " GB" : ""));
+            wizBody.append(h("p", "wizard-ok", "✓ The model replied: “" + g.reply.slice(0, 60) + "”"));
+            grid.append(stat("Speed", g.tps ? g.tps + " tok/s" : "—", "tokens per second"),
+                        stat("First token", g.ttft_ms + " ms", "until it starts replying"),
+                        stat("Load", report.phases.load.seconds != null ? report.phases.load.seconds + " s" : "—", "time to load the model"),
+                        stat("Model memory", m.model_gb != null ? m.model_gb + " GB" : "—", m.gpu_percent != null ? m.gpu_percent + "% on GPU · VRAM " + m.vram_gb + " GB · RAM " + m.ram_gb + " GB" : ""));
             wizBody.append(grid);
-            if (m.gpu_percent === 0) wizBody.append(h("p", "wizard-note", "El modelo corre solo en CPU (más lento). Si tenés GPU, actualizá sus controladores o probá un modelo más chico."));
+            if (m.gpu_percent === 0) wizBody.append(h("p", "wizard-note", "The model runs on CPU only (slower). If you have a GPU, update its drivers or try a smaller model."));
             if (report.stability) {
               const st = report.stability;
-              wizBody.append(st.stable == null ? h("p", "wizard-note", "No hubo datos suficientes para medir la estabilidad (la respuesta fue muy corta).") :
-                h("p", st.stable ? "wizard-ok" : "wizard-err", st.stable ? "✓ Velocidad estable (" + st.tps_min + "–" + st.tps_max + " tok/s)" : "⚠ Velocidad irregular (" + st.tps_min + "–" + st.tps_max + " tok/s)"));
-            } else wizBody.append(wizButton("Medir estabilidad (puede tardar)", () => wizardBenchmark(true), false));
+              wizBody.append(st.stable == null ? h("p", "wizard-note", "Not enough data to measure stability (the reply was too short).") :
+                h("p", st.stable ? "wizard-ok" : "wizard-err", st.stable ? "✓ Stable speed (" + st.tps_min + "–" + st.tps_max + " tok/s)" : "⚠ Uneven speed (" + st.tps_min + "–" + st.tps_max + " tok/s)"));
+            } else wizBody.append(wizButton("Measure stability (may take a while)", () => wizardBenchmark(true), false));
           }
           if (report) report.errors.forEach((e) => wizBody.append(errorBlock(e)));
           if (wiz.error) wizBody.append(errorBlock(wiz.error));
-          if ((report && !report.ok) || wiz.error) wizBody.append(wizButton("Reintentar", () => { resetTest(); wizardBenchmark(false); }, true));
+          if ((report && !report.ok) || wiz.error) wizBody.append(wizButton("Retry", () => { resetTest(); wizardBenchmark(false); }, true));
         } else {
-          title.textContent = "¡Todo listo!";
-          wizNext.textContent = "Empezar a chatear";
-          wizBody.append(h("p", "wizard-ok", "✓ QuickZap está usando " + wiz.selected + " en tu computadora."));
-          if (wiz.report && wiz.report.ok && wiz.report.phases.generation.tps) wizBody.append(h("p", null, "Velocidad medida: " + wiz.report.phases.generation.tps + " tokens por segundo."));
-          wizBody.append(h("p", "wizard-note", "Podés cambiar de modelo desde el selector del chat, volver a abrir este asistente con ⇩ o ver el rendimiento en ▦."));
+          title.textContent = "All set!";
+          wizNext.textContent = "Start chatting";
+          wizBody.append(h("p", "wizard-ok", "✓ QuickZap is using " + wiz.selected + " en tu computadora."));
+          if (wiz.report && wiz.report.ok && wiz.report.phases.generation.tps) wizBody.append(h("p", null, "Measured speed: " + wiz.report.phases.generation.tps + " tokens per second."));
+          wizBody.append(h("p", "wizard-note", "You can change models from the chat selector, reopen this wizard with ⇩, or view performance in ▦."));
         }
       }
       wizNext.addEventListener("click", async () => {
         if (wiz.step === 1) {
           const have = wiz.info.installed_models.some((n) => baseName(n) === baseName(wiz.selected));
           wiz.busy = true; wiz.error = null;
-          if (!have) wiz.progress = { percent: null, text: "Preparando la descarga de " + wiz.selected + "…" };
+          if (!have) wiz.progress = { percent: null, text: "Preparing download of " + wiz.selected + "…" };
           wizardRender();
           try {
             if (!have) await wizardDownload(wiz.selected);
@@ -1710,32 +1710,32 @@
       wizSkip.addEventListener("click", wizardClose);
       $("pull-model").addEventListener("click", () => wizardOpen());
 
-      /* ================= panel de estadísticas ================= */
+      /* ================= statistics panel ================= */
       let statsTimer = null;
       function renderStats(s) {
         const sys = s.system, loaded = s.loaded, chat = s.chat, ram = sys.ram, vram = sys.vram, body = $("stats-body");
         body.replaceChildren(
-          stat("Modelo actual", s.model, loaded ? "Cargado en memoria" : "No está cargado ahora"),
-          stat("Ollama", s.ollama.running ? "Activo" : "Apagado", s.ollama.running ? "versión " + s.ollama.version : "Abrí el asistente (⇩)"),
-          stat("Conexión", s.online === null ? "…" : s.online ? "Con Internet" : "Sin conexión", s.online === false ? "Modo offline: el modelo local sigue funcionando" : ""),
-          stat("Velocidad", chat.tps_avg ? chat.tps_avg + " tok/s" : "—", chat.count ? (chat.count === 1 ? "de la última respuesta" : "promedio de las últimas " + chat.count + " respuestas") : ""),
-          stat("Primer token", chat.ttft_ms_avg != null ? Math.round(chat.ttft_ms_avg) + " ms" : "—", "hasta empezar a responder"),
-          stat("Tiempo de respuesta", chat.total_ms_avg != null ? (chat.total_ms_avg / 1000).toFixed(1) + " s" : "—", "respuesta completa (promedio)"),
-          stat("RAM del sistema", ram.total_gb ? ram.used_gb + " / " + ram.total_gb + " GB" : "—", sys.cpu, ram.total_gb ? ram.used_gb / ram.total_gb : null),
-          stat("VRAM (GPU)", vram ? (vram.used_mib / 1024).toFixed(1) + " / " + (vram.total_mib / 1024).toFixed(1) + " GB" : "Sin GPU NVIDIA", "", vram ? vram.used_mib / vram.total_mib : null),
-          stat("Memoria del modelo", loaded ? loaded.model_gb + " GB" : "—", loaded ? loaded.gpu_percent + "% en GPU · VRAM " + loaded.vram_gb + " GB · RAM " + loaded.ram_gb + " GB" : ""),
-          stat("Conversaciones", String(s.data.conversations), s.data.messages + " mensajes"),
-          stat("Espacio de datos", formatBytes(s.data.db_bytes), "base de datos local"));
+          stat("Current model", s.model, loaded ? "Loaded in memory" : "Not currently loaded"),
+          stat("Ollama", s.ollama.running ? "Running" : "Stopped", s.ollama.running ? "version " + s.ollama.version : "Open the wizard (⇩)"),
+          stat("Connection", s.online === null ? "…" : s.online ? "Online" : "Offline", s.online === false ? "Offline mode: the local model still works" : ""),
+          stat("Speed", chat.tps_avg ? chat.tps_avg + " tok/s" : "—", chat.count ? (chat.count === 1 ? "from the last reply" : "average of the last " + chat.count + " replies") : ""),
+          stat("First token", chat.ttft_ms_avg != null ? Math.round(chat.ttft_ms_avg) + " ms" : "—", "until it starts replying"),
+          stat("Response time", chat.total_ms_avg != null ? (chat.total_ms_avg / 1000).toFixed(1) + " s" : "—", "full response (average)"),
+          stat("System RAM", ram.total_gb ? ram.used_gb + " / " + ram.total_gb + " GB" : "—", sys.cpu, ram.total_gb ? ram.used_gb / ram.total_gb : null),
+          stat("VRAM (GPU)", vram ? (vram.used_mib / 1024).toFixed(1) + " / " + (vram.total_mib / 1024).toFixed(1) + " GB" : "No NVIDIA GPU", "", vram ? vram.used_mib / vram.total_mib : null),
+          stat("Model memory", loaded ? loaded.model_gb + " GB" : "—", loaded ? loaded.gpu_percent + "% on GPU · VRAM " + loaded.vram_gb + " GB · RAM " + loaded.ram_gb + " GB" : ""),
+          stat("Conversations", String(s.data.conversations), s.data.messages + " messages"),
+          stat("Data space", formatBytes(s.data.db_bytes), "local database"));
         if (s.benchmarks.length) {
           const box = h("div", "stat stat-wide");
-          box.append(h("span", null, "Comparación de modelos (último benchmark de cada uno)"));
-          s.benchmarks.forEach((b) => box.append(h("small", null, b.model + " — " + (b.tps != null ? b.tps + " tokens/s" : "—") + " · primer token " + (b.ttft_ms != null ? b.ttft_ms + " ms" : "—"))));
+          box.append(h("span", null, "Model comparison (latest benchmark for each)"));
+          s.benchmarks.forEach((b) => box.append(h("small", null, b.model + " — " + (b.tps != null ? b.tps + " tokens/s" : "—") + " · first token " + (b.ttft_ms != null ? b.ttft_ms + " ms" : "—"))));
           body.append(box);
         }
       }
       async function statsRefresh() {
         if ($("stats").hidden) return;
-        try { renderStats(await (await fetch("/api/stats")).json()); } catch (_) { /* se reintenta en el próximo ciclo */ }
+        try { renderStats(await (await fetch("/api/stats")).json()); } catch (_) { /* retry on the next cycle */ }
       }
       function statsOpen() {
         $("stats").hidden = false;
@@ -1751,15 +1751,15 @@
         let report = null;
         try {
           const response = await postJson("/api/benchmark", { long: true });
-          if (!response.ok) throw new Error("No se pudo iniciar la medición.");
+          if (!response.ok) throw new Error("Could not start the measurement.");
           await readNdjson(response, (event) => {
-            if (event.type === "stage" && event.status === "running") button.textContent = "Midiendo: " + (STAGE_LABELS[event.stage] || event.stage).toLowerCase();
+            if (event.type === "stage" && event.status === "running") button.textContent = "Measuring: " + (STAGE_LABELS[event.stage] || event.stage).toLowerCase();
             else if (event.type === "report") report = event.report;
           });
           if (report && report.errors.length) showToast("⚠ " + report.errors[0].title + ". " + report.errors[0].hint);
         } catch (error) { showToast("⚠ " + error.message); }
         button.disabled = false;
-        button.textContent = "Medir rendimiento";
+        button.textContent = "Benchmark";
         statsRefresh();
       }
       $("open-stats").addEventListener("click", statsOpen);
@@ -1773,14 +1773,14 @@
         else if (!$("wizard").hidden && !wiz.busy && !wiz.benchmarking) wizardClose();
       });
 
-      /* ================= inicio ================= */
+      /* ================= startup ================= */
       async function initBackend() {
         await refreshStatus();
         loadConversations();
         if (!api.available) return;
         if (!api.ready && !wiz.dismissed) wizardOpen();
         let id = 0;
-        try { id = Number(localStorage.getItem(conversationKey)) || 0; } catch (_) { /* opcional */ }
+        try { id = Number(localStorage.getItem(conversationKey)) || 0; } catch (_) { /* optional */ }
         if (id) {
           try {
             const response = await fetch("/api/conversations/" + id);
@@ -1792,7 +1792,7 @@
               conversation.messages.forEach((m) => addMessage(m.content, m.role === "user" ? "user" : "bot"));
               setActive(id);
             } else storeConversation(null);
-          } catch (_) { /* se empieza una conversación nueva */ }
+          } catch (_) { /* start a new conversation */ }
         }
         updateComposer();
         window.setInterval(() => { if (!api.busy && !document.hidden) refreshStatus(); }, 15000);

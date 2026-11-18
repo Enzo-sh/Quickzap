@@ -1,49 +1,75 @@
-# Contribuir a Quickzap
+# Contributing to QuickZap
 
-¡Gracias por querer ayudar! Quickzap busca ser una IA local rápida, fácil de instalar y útil también en computadoras modestas.
+Thank you for wanting to help! QuickZap aims to be a fast, easy-to-install local AI assistant that is also useful on modest hardware.
 
-## Preparar el entorno
-
-```bash
-git clone https://github.com/<tu-usuario>/quickzap.git && cd quickzap
-python -m unittest discover -s tests -t . -v      # no necesita dependencias ni GPU
-python scripts/check_secrets.py                    # debe decir «Sin hallazgos.»
-```
-
-Las pruebas de navegador son opcionales: `pip install playwright && playwright install chromium && python -m tests.e2e_wizard`.
-
-## Principios
-
-- **Sin dependencias externas** en el código de la app (solo biblioteca estándar). Si una función de verdad las necesita, que sea opcional y documentada en `THIRD_PARTY.md`.
-- **Nada de recursos remotos** en la interfaz (CDN, fuentes, scripts): Quickzap tiene que funcionar sin Internet.
-- **No declares una función terminada si solo tiene interfaz.** Cada cambio lleva pruebas; los casos de error cuentan tanto como los felices.
-- **Los números salen de mediciones**, no de suposiciones. Las reglas de `hardware.py` son heurísticas que queremos reemplazar con datos reales.
-- Los mensajes para el usuario van en español, claros y con una sugerencia de qué hacer.
-
-## Pull requests
-
-1. Una idea por PR, con descripción de qué cambia y por qué.
-2. `python -m unittest discover -s tests -t . -v` en verde y `python scripts/check_secrets.py` sin hallazgos.
-3. Si cambia el comportamiento visible, actualizá `CHANGELOG.md` (sección *Sin publicar*) y la documentación.
-4. Nunca incluyas claves, rutas personales ni datos de tus conversaciones.
-
-## Agregar un modelo al catálogo
-
-Editá `FAMILIES` en `quickzap/hardware.py` (nombre exacto de Ollama, parámetros reales, licencia) y regenerá la tabla:
+## Setting Up the Environment
 
 ```bash
-python -m quickzap models --markdown   # pegá el resultado en docs/MODELS.md
+git clone https://github.com/Enzo-sh/Quickzap.git
+cd Quickzap
+
+python -m unittest discover -s tests -t . -v  # No dependencies or GPU required
+python scripts/check_secrets.py              # Should report "No findings."
 ```
 
-Verificá que las etiquetas de cuantización (`<modelo>-instruct-q5_K_M`, `-q8_0`) existan en la biblioteca de Ollama: hay una prueba que
-compara `docs/MODELS.md` con el catálogo.
+Browser tests are optional:
 
-## Aportar benchmarks
+```bash
+pip install playwright
+playwright install chromium
+python -m tests.e2e_wizard
+```
 
-Los benchmarks reales de distintas computadoras son lo más valioso que podés aportar. Instrucciones y metodología en
-[docs/BENCHMARKS.md](docs/BENCHMARKS.md): ejecutá `python -m quickzap bench --quality` y enviá el JSON de `benchmarks/` en un PR.
-El informe no contiene datos personales (podés abrirlo y comprobarlo).
+## Principles
 
-## Reportar un problema
+- **No external dependencies** in the application code (standard library only). If a feature genuinely requires them, they must be optional and documented in `THIRD_PARTY.md`.
+- **No remote resources** in the interface (CDNs, fonts, scripts): QuickZap must work without an Internet connection.
+- **Never declare a feature complete if it only has a user interface.** Every change must include tests; error cases matter just as much as successful ones.
+- **Numbers must come from measurements**, not assumptions. The rules in `hardware.py` are heuristics that we want to replace with real-world data.
+- User-facing messages must be clear and written in English, with a suggestion explaining what to do next.
 
-Incluí la salida de `python -m quickzap hardware` y `python -m quickzap doctor`, y qué esperabas que pasara. Ver [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
+## Pull Requests
+
+1. One idea per PR, with a description of what changes and why.
+2. `python -m unittest discover -s tests -t . -v` must pass, and `python scripts/check_secrets.py` must report no findings.
+3. If visible behavior changes, update `CHANGELOG.md` (under the *Unreleased* section) and the documentation.
+4. Never include API keys, personal file paths, or data from your conversations.
+
+## Adding a Model to the Catalog
+
+Edit `FAMILIES` in `quickzap/hardware.py` (exact Ollama name, actual parameters, and license), then regenerate the table:
+
+```bash
+python -m quickzap models --markdown
+```
+
+Paste the output into `docs/MODELS.md`.
+
+Verify that quantization tags (`<model>-instruct-q5_K_M`, `-q8_0`) exist in the Ollama library: a test compares `docs/MODELS.md` against the catalog.
+
+## Contributing Benchmarks
+
+Real-world benchmarks from different computers are the most valuable contributions you can make.
+
+Instructions and methodology are available in [docs/BENCHMARKS.md](https://github.com/Enzo-sh/Quickzap/blob/main/docs/BENCHMARKS.md).
+
+Run:
+
+```bash
+python -m quickzap bench --quality
+```
+
+Then submit the JSON file from `benchmarks/` in a PR. The report does not contain personal data (you can open it and verify this yourself).
+
+## Reporting an Issue
+
+Include the output of:
+
+```bash
+python -m quickzap hardware
+python -m quickzap doctor
+```
+
+Also explain what you expected to happen.
+
+See [docs/TROUBLESHOOTING.md](https://github.com/Enzo-sh/Quickzap/blob/main/docs/TROUBLESHOOTING.md).

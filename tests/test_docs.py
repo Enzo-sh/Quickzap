@@ -12,7 +12,7 @@ DOCS = [ROOT / "README.md", ROOT / "CHANGELOG.md", ROOT / "CONTRIBUTING.md", ROO
 class DocsTests(unittest.TestCase):
     def test_models_table_is_up_to_date(self):
         self.assertIn(reports.models_markdown(), (ROOT / "docs" / "MODELS.md").read_text(encoding="utf-8"),
-                      "docs/MODELS.md está desactualizado: regeneralo con `python -m quickzap models --markdown`")
+                      "docs/MODELS.md is out of date: regenerate it with `python -m quickzap models --markdown`")
 
     def test_relative_links_and_images_exist(self):
         broken = []
@@ -47,7 +47,7 @@ class DocsTests(unittest.TestCase):
         used = set(re.findall(r"python -m quickzap (hardware|recommend|pull|doctor|bench-compare|bench|models)", text))
         self.assertTrue({"hardware", "doctor", "bench", "bench-compare", "models", "pull", "recommend"} <= used)
         for cmd in used:
-            with self.assertRaises(SystemExit) as ctx:     # `--help` termina con código 0 si el subcomando existe
+            with self.assertRaises(SystemExit) as ctx:     # `--help` exits with code 0 if the subcommand exists
                 main([cmd, "--help"])
             self.assertEqual(ctx.exception.code, 0, cmd)
 

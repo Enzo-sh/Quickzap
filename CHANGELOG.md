@@ -1,33 +1,33 @@
 # Changelog
 
-Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [Versionado Semántico](https://semver.org/lang/es/).
+Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
 
-## [Sin publicar]
+## [Unreleased]
 
 ## [0.2.0] - 2026-11-15
 
-### Agregado
-- Detección de CPU, RAM (total y disponible), GPU y VRAM; en Apple Silicon se estima la memoria unificada.
-- Recomendación de modelo y cuantización (Q4/Q5/Q8) según los recursos; nunca se recomienda un modelo que no quepa. Modelos livianos (0.5B, 1.5B) para equipos modestos.
-- Benchmark por fases: conexión, modelo, carga en frío, generación real, memoria, estabilidad; tokens/s y tiempo hasta el primer token.
-- Errores clasificados en instalación / descarga / carga del modelo / generación, con sugerencias; reintento en cada etapa del asistente.
-- Panel de estadísticas (▦) y comparación de modelos medidos.
-- Métricas por respuesta (tokens/s, primer token, tiempo total) guardadas en SQLite.
-- Comandos `hardware`, `bench`, `bench-compare` y `models`; batería de calidad de 8 preguntas (`bench --quality`).
-- Ajuste `num_ctx` (4096 por defecto) para memoria predecible.
-- Documentación de publicación: README, CONTRIBUTING, guía de problemas, modelos, benchmarks, licencias de terceros, escáner de secretos.
+### Added
+- CPU, RAM (total and available), GPU, and VRAM detection; on Apple Silicon, unified memory is estimated.
+- Model and quantization recommendation (Q4/Q5/Q8) based on available resources; never recommends a model that does not fit. Lightweight models (0.5B, 1.5B) for modest computers.
+- Phase-by-phase benchmark: connection, model, cold load, real generation, memory, stability; tokens/s and time to first token.
+- Errors classified into installation / download / model load / generation, with suggestions; retry at every wizard stage.
+- Statistics panel (▦) and comparison of measured models.
+- Per-reply metrics (tokens/s, first token, total time) saved in SQLite.
+- `hardware`, `bench`, `bench-compare`, and `models` commands; 8-question quality battery (`bench --quality`).
+- `num_ctx` setting (4096 by default) for predictable memory.
+- Publishing documentation: README, CONTRIBUTING, troubleshooting guide, models, benchmarks, third-party licenses, secret scanner.
 
-### Cambiado
-- El estado de Internet se comprueba en segundo plano y nunca bloquea `/api/status` (antes podía tardar hasta 1,5 s sin conexión); se muestra «comprobando» mientras no se sabe.
-- El paso «Prueba» del asistente usa el benchmark; se mantiene el mensaje «El modelo respondió: …».
-- Si el puerto está ocupado se muestra un mensaje con la solución en lugar de un error técnico.
+### Changed
+- Internet status is checked in the background and never blocks `/api/status` (it could previously take up to 1.5 s offline); "checking" is shown while the status is unknown.
+- The wizard's "Test" step uses the benchmark; the "The model replied: …" message is kept.
+- If the port is busy, a message with the solution is shown instead of a technical error.
 
-### Eliminado
-- Endpoint `/api/setup/test` (reemplazado por `/api/benchmark`).
+### Removed
+- `/api/setup/test` endpoint (replaced by `/api/benchmark`).
 
 ## [0.1.0] - 2026-11-14
 
-### Agregado
-- Chat local con Ollama, historial en SQLite, selector de modelo, descarga con progreso.
-- Asistente de instalación (Ollama, modelo, prueba), `doctor`, instaladores `setup.ps1` / `setup.sh`, lanzador de doble clic.
-- Protección contra peticiones de otros orígenes (Host/Origin).
+### Added
+- Local chat with Ollama, history in SQLite, model selector, download with progress bar.
+- Installation wizard (Ollama, model, test), `doctor`, `setup.ps1` / `setup.sh` installers, double-click launcher.
+- Protection against cross-origin requests (Host/Origin).

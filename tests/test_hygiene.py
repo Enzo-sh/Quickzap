@@ -16,9 +16,9 @@ class HygieneTests(unittest.TestCase):
     def test_scanner_detects_planted_secrets(self):
         planted = {
             "a.py": 'API_KEY = "abcd1234efgh5678"\n',
-            "b.txt": "clave: sk-" + "A1b2C3d4E5f6G7h8I9j0K1l2" + "\n",
-            "c.md": "mi carpeta es C:\\Users\\maria\\proyecto\n",
-            "d.md": "escribime a persona@gmail.com\n",
+            "b.txt": "key: sk-" + "A1b2C3d4E5f6G7h8I9j0K1l2" + "\n",
+            "c.md": "my folder is C:\\Users\\maria\\project\n",
+            "d.md": "write to persona@gmail.com\n",
             "e.pem": "-----BEGIN PRIVATE KEY-----\n",
             "f.md": "/home/pedro/notas\n",
         }
@@ -29,9 +29,9 @@ class HygieneTests(unittest.TestCase):
         self.assertEqual(found, set(planted))
 
     def test_scanner_ignores_placeholders_and_embedded_images(self):
-        ok = {"a.md": "Ruta de ejemplo: C:\\Users\\<tu-usuario>\\Downloads y /home/<usuario>/x\n",
+        ok = {"a.md": "Example path: C:\\Users\\<your-user>\\Downloads and /home/<user>/x\n",
               "b.html": '<img src="data:image/png;base64,' + "sk-AKIA" * 400 + '">\n',
-              "c.md": "contacto: nadie@example.com\n"}
+              "c.md": "contact: nobody@example.com\n"}
         with tempfile.TemporaryDirectory() as tmp:
             for name, text in ok.items():
                 (Path(tmp) / name).write_text(text, encoding="utf-8")

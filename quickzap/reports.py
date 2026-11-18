@@ -1,4 +1,4 @@
-"""Informes de benchmark: nombres de archivo, tabla comparativa y documentación de modelos."""
+"""Benchmark reports: file names, comparison table, and model documentation."""
 import re
 
 from . import hardware
@@ -23,17 +23,17 @@ def row(report):
     gpu = (hw.get("gpus") or [None])[0]
     mem, st, q = report.get("memory") or {}, report.get("stability"), report.get("quality")
     return [report["created"][:10], hw["cpu"]["name"], _dash(hw["ram"].get("total_gb"), "%s GB"),
-            "%s (%.0f GB)" % (gpu["name"], gpu["vram_total_mib"] / 1024) if gpu else "sin GPU",
+            "%s (%.0f GB)" % (gpu["name"], gpu["vram_total_mib"] / 1024) if gpu else "no GPU",
             report["model"], _dash(ph.get("load", {}).get("seconds"), "%.1f"), _dash(ph.get("generation", {}).get("ttft_ms")),
             _dash(ph.get("generation", {}).get("tps"), "%.1f"), _dash(mem.get("vram_gb"), "%.1f"), _dash(mem.get("ram_gb"), "%.1f"),
-            "—" if not st or st.get("stable") is None else ("sí" if st["stable"] else "no"),
+            "—" if not st or st.get("stable") is None else ("yes" if st["stable"] else "no"),
             "—" if not q else "%d/%d" % (q["score"], q["total"]),
             _dash(report.get("install_seconds"), "%d"), _dash(report.get("startup_ms")),
-            "verificado" if report.get("online") is False and report["ok"] else "—"]
+            "verified" if report.get("online") is False and report["ok"] else "—"]
 
 
-HEADERS = ["Fecha", "CPU", "RAM", "GPU", "Modelo", "Carga (s)", "1.er token (ms)", "Tokens/s", "VRAM modelo (GB)",
-           "RAM modelo (GB)", "Estable", "Calidad", "Instalación (s)", "Inicio (ms)", "Sin Internet"]
+HEADERS = ["Date", "CPU", "RAM", "GPU", "Model", "Load (s)", "1st token (ms)", "Tokens/s", "Model VRAM (GB)",
+           "Model RAM (GB)", "Stable", "Quality", "Installation (s)", "Startup (ms)", "Offline"]
 
 
 def compare_markdown(reports):
@@ -43,13 +43,13 @@ def compare_markdown(reports):
     lines += ["| " + " | ".join(r) + " |" for r in rows]
     skipped = len(reports) - len(ok)
     if skipped:
-        lines.append("\n_%d informe(s) con errores no se incluyen en la tabla._" % skipped)
+        lines.append("\n_%d report(s) with errors are not included in the table._" % skipped)
     return "\n".join(lines)
 
 
 def models_markdown():
-    """Tabla de modelos compatibles. docs/MODELS.md se genera con: python -m quickzap models --markdown"""
-    lines = ["| Modelo | Parámetros | Descarga Q4 (por defecto) | Q5 | Q8 | Memoria estimada Q4 / Q5 / Q8 | Licencia | Nota |",
+    """Table of compatible models. docs/MODELS.md is generated with: python -m quickzap models --markdown"""
+    lines = ["| Model | Parameters | Q4 download (default) | Q5 | Q8 | Estimated memory Q4 / Q5 / Q8 | License | Note |",
              "|---|---|---|---|---|---|---|---|"]
     for f in hardware.FAMILIES:
         tags = ["`%s`" % hardware.tag_for(f["id"], q) for q in hardware.QUANTS]

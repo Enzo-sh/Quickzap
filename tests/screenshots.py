@@ -1,6 +1,6 @@
-"""Genera las capturas de docs/screenshots con un equipo de ejemplo y un Ollama SIMULADO (datos de demostración).
-Para capturas con datos reales, corré la app en tu equipo y reemplazá los PNG.
-Uso: python -m tests.screenshots"""
+"""Generates docs/screenshots with a sample computer and a SIMULATED Ollama (demo data).
+For screenshots with real data, run the app on your computer and replace the PNGs.
+Usage: python -m tests.screenshots"""
 from pathlib import Path
 from unittest import mock
 
@@ -15,7 +15,7 @@ OUT = Path(__file__).resolve().parent.parent / "docs" / "screenshots"
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     demo = {"snapshot": lambda: RTX3060, "ram": lambda: RTX3060["ram"], "cpu_info": lambda: RTX3060["cpu"],
-            "vram_usage": lambda: {"used_mib": 5200, "total_mib": 8192}}     # equipo de ejemplo coherente en toda la interfaz
+            "vram_usage": lambda: {"used_mib": 5200, "total_mib": 8192}}     # sample computer consistent across the whole interface
     patches = [mock.patch.object(hardware, name, fn) for name, fn in demo.items()]
     for patch in patches:
         patch.start()
@@ -29,12 +29,12 @@ def main():
         page.wait_for_selector(".model-option")
         page.screenshot(path=str(OUT / "wizard-model.png"))
         page.click("#wizard-next")
-        page.wait_for_function("document.getElementById('wizard-body').textContent.includes('El modelo respondió')")
-        page.click("text=Medir estabilidad")
-        page.wait_for_function("document.getElementById('wizard-body').textContent.includes('Velocidad estable')")
+        page.wait_for_function("document.getElementById('wizard-body').textContent.includes('The model replied')")
+        page.click("text=Measure stability")
+        page.wait_for_function("document.getElementById('wizard-body').textContent.includes('Stable speed')")
         page.screenshot(path=str(OUT / "wizard-benchmark.png"))
         page.click("#wizard-next"); page.click("#wizard-next")
-        page.fill("#chat-input", "Hola, ¿cómo estás?"); page.press("#chat-input", "Enter")
+        page.fill("#chat-input", "Hello, how are you?"); page.press("#chat-input", "Enter")
         page.wait_for_function("document.querySelector('.message-row.bot .message-note')?.textContent.includes('tokens/s')")
         page.click("#open-stats")
         page.wait_for_function("document.getElementById('stats-body').textContent.includes('tok/s')")
@@ -43,7 +43,7 @@ def main():
         browser.close()
     for patch in patches:
         patch.stop()
-    print("capturas en", OUT)
+    print("screenshots in", OUT)
 
 
 if __name__ == "__main__":

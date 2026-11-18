@@ -22,29 +22,29 @@ def run_cli(*argv):
 class CliTests(ServerCase):
     def test_bench_saves_a_shareable_report_and_compare_builds_a_table(self):
         with tempfile.TemporaryDirectory() as tmp, mock.patch.object(server, "internet_now", return_value=False):
-            out = Path(tmp) / "informe.json"
+            out = Path(tmp) / "report.json"
             code, text = run_cli("bench", "--quality", "--out", str(out))
             self.assertEqual(code, 0, text)
-            for fragment in ("Carga del modelo", "Generación de texto", "Estabilidad", "Calidad:", "Resumen:", "tokens/s"):
+            for fragment in ("Model load", "Text generation", "Stability", "Quality:", "Summary:", "tokens/s"):
                 self.assertIn(fragment, text)
             report = json.loads(out.read_text(encoding="utf-8"))
             self.assertTrue(report["ok"] and report["online"] is False)
             self.assertIn("startup_ms", report)
             self.assertEqual(report["quality"]["total"], 8)
-            blob = json.dumps(report)                                   # el informe no incluye datos personales
+            blob = json.dumps(report)                                   # the report contains no personal data
             for private in {getpass.getuser(), platform.node(), str(Path.home())} - {"", "root", "/root"}:
                 self.assertNotIn(private, blob)
             code, table = run_cli("bench-compare", str(out))
             self.assertEqual(code, 0)
             self.assertIn(MODEL, table)
             self.assertIn("50.0", table)
-            self.assertIn("verificado", table)                         # se probó sin Internet
+            self.assertIn("verified", table)                         # tested without Internet
 
     def test_bench_quick_and_failure_exit_codes(self):
         with tempfile.TemporaryDirectory() as tmp:
             code, text = run_cli("bench", "--quick", "--no-save")
             self.assertEqual(code, 0)
-            self.assertNotIn("Estabilidad", text)
+            self.assertNotIn("Stability", text)
             self.fake.fail_load = "model requires more system memory (10.0 GiB) than is available (6.0 GiB)"
             code, text = run_cli("bench", "--no-save")
             self.assertEqual(code, 1)
@@ -54,7 +54,7 @@ class CliTests(ServerCase):
         code, text = run_cli("hardware")
         self.assertEqual(code, 0)
         self.assertIn("CPU", text)
-        self.assertIn("Recomendado", text)
+        self.assertIn("Recommended", text)
         self.assertIn("cpu", json.loads(run_cli("hardware", "--json")[1]))
 
     def test_recommend_includes_quantization(self):
@@ -71,7 +71,7 @@ class CliTests(ServerCase):
         table = reports.compare_markdown([ok, bad])
         self.assertIn("CPU X", table)
         self.assertIn("12.3", table)
-        self.assertIn("1 informe(s) con errores", table)
+        self.assertIn("1 report(s) with errors", table)
         self.assertEqual(table.count("| CPU X |"), 1)
 
 
